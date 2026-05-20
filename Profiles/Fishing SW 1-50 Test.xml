@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Alliance fishing profile - Stormwind, skill 1 to 50.
+     - Buys and equips fishing pole (item 6256) from Woo Ping (NPC 5494)
+     - Trains Fishing Apprentice from Lee Brown (NPC 5493)
+     - Logs each catch via LOOT_OPENED event
+     - Stops at skill 50 and logs out
+     Coordinates: Old Town / Trade District, Stormwind -->
+<Professionbuddy>
+
+  <!-- Move to the fishing area near the trainer / vendor -->
+  <MoveToAction MoveType="Location" Pathing="Navigator" Entry="0" X="-8801.354" Y="768.9965" Z="96.33865" />
+
+  <!-- Enable auto-loot -->
+  <CustomAction Code="Lua.DoString(&quot;SetCVar(\&quot;AutoLootDefault\&quot;, 1)&quot;);" />
+
+  <!-- Register LOOT_OPENED event to capture what was fished.
+       _FishLog is a global Lua table. GetLootSlotInfo returns (texture, name, quantity, quality, locked)
+       so we use the 2nd return value for the item name. -->
+  <CustomAction Code="Lua.DoString(&quot;_FishLog = {}; if not _FishLogFrame then _FishLogFrame = CreateFrame('Frame'); _FishLogFrame:RegisterEvent('LOOT_OPENED'); _FishLogFrame:SetScript('OnEvent', function() for i = 1, GetNumLootItems() do local _, name = GetLootSlotInfo(i); if name then table.insert(_FishLog, name) end end end) end&quot;);" />
+
+  <!-- Train Fishing Apprentice if skill not yet learned -->
+  <If Condition="Fishing.MaxLevel == 0" IgnoreCanRun="False">
+    <CallSubRoutine SubRoutineName="TrainFishing" />
+  </If>
+
+  <!-- Equip fishing pole (buy if needed) -->
+  <CallSubRoutine SubRoutineName="EquipFishingPole" />
+
+  <!-- Main loop: fish until skill 50 -->
+  <While Condition="Fishing.Level &lt; 50" IgnoreCanRun="True">
+
+    <!-- Find the player's fishing bobber in the scene -->
+    <CustomAction Code="var1 = ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().FirstOrDefault(u =&gt; u.SubType == WoWGameObjectType.FishingBobber &amp;&amp; u.CreatedByGuid == Me.Guid);" />
+
+    <!-- Bobber found and bobbing: interact and log the catch -->
+    <If Condition="var1 != null &amp;&amp; ((WoWGameObject)var1).IsValid &amp;&amp; ((WoWFishingBobber)((WoWGameObject)var1).SubObj).IsBobbing" IgnoreCanRun="True">
+      <CustomAction Code="((WoWGameObject)var1).Interact();" />
+      <!-- Short wait: LOOT_OPENED fires before auto-loot -->
+      <WaitAction Condition="false" Timeout="500" />
+      <!-- Read _FishLog (filled by LOOT_OPENED) and log each item -->
+      <CustomAction Code="var r = Lua.GetReturnValues(&quot;local out = table.concat(_FishLog, '|'); _FishLog = {}; return out&quot;); if (r != null &amp;&amp; r.Count &gt; 0 &amp;&amp; !string.IsNullOrEmpty(r[0])) { foreach (string item in r[0].Split('|')) { if (!string.IsNullOrEmpty(item)) Log(&quot;Caught: &quot; + item + &quot; [Skill: &quot; + Fishing.Level + &quot;]&quot;); } }" />
+    </If>
+
+    <!-- No bobber and not casting: cast Fishing -->
+    <If Condition="var1 == null &amp;&amp; !Me.IsCasting" IgnoreCanRun="True">
+      <CustomAction Code="SpellManager.Cast(&quot;Fishing&quot;);" />
+      <WaitAction Condition="false" Timeout="1000" />
+    </If>
+
+  </While>
+
+  <!-- Skill 50 reached: log and log out -->
+  <If Condition="Fishing.Level &gt;= 50" IgnoreCanRun="True">
+    <CustomAction Code="Log(&quot;Fishing skill 50 reached! Logging out...&quot;);" />
+    <CustomAction Code="Lua.DoString(&quot;Logout()&quot;); TreeRoot.Stop();" />
+  </If>
+
+  <!-- ============================================================ -->
+  <!-- SUBROUTINE: Train Fishing Apprentice                         -->
+  <!-- NPC 5493 = Lee Brown (Fishing Trainer, Trade District, SW)   -->
+  <!-- ============================================================ -->
+  <SubRoutine SubRoutineName="TrainFishing">
+    <CustomAction Code="Log(&quot;Training Fishing Apprentice from Lee Brown (NPC 5493)&quot;);" />
+    <TrainSkillAction NpcEntry="5493" X="-8802.007" Y="770.9219" Z="96.33821" />
+    <CustomAction Code="Lua.DoString(&quot;CloseTrainer()&quot;);" />
+    <WaitAction Condition="false" Timeout="2000" />
+  </SubRoutine>
+
+  <!-- ============================================================ -->
+  <!-- SUBROUTINE: Buy and equip fishing pole                       -->
+  <!-- NPC 5494 = Woo Ping (Trade Goods, Old Town, SW)              -->
+  <!-- Item 6256 = Standard fishing pole                            -->
+  <!-- ============================================================ -->
+  <SubRoutine SubRoutineName="EquipFishingPole">
+    <CustomAction Code="Log(&quot;Checking fishing pole...&quot;);" />
+    <If Condition="Me.Inventory.Equipped.MainHand == null || Me.Inventory.Equipped.MainHand.ItemInfo.WeaponClass != WoWItemWeaponClass.FishingPole" IgnoreCanRun="True">
+
+      <!-- Search for a pole in bags -->
+      <CustomAction Code="var1 = Me.BagItems.FirstOrDefault(i =&gt; i.ItemInfo.WeaponClass == WoWItemWeaponClass.FishingPole);" />
+
+      <!-- Pole found in bags: equip it directly -->
+      <If Condition="var1 != null" IgnoreCanRun="True">
+        <CustomAction Code="Log(&quot;Equipping fishing pole from inventory&quot;); ((WoWItem)var1).UseContainerItem();" />
+      </If>
+
+      <!-- No pole in bags: go buy one -->
+      <If Condition="var1 == null" IgnoreCanRun="True">
+        <CustomAction Code="Log(&quot;Buying basic fishing pole (item 6256)&quot;);" />
+        <BuyItemAction NpcEntry="5494" X="-8803.257" Y="766.717" Z="96.33911" ItemID="6256" Count="1" BuyItemType="SpecificItem" BuyAdditively="True" />
+        <WaitAction Condition="false" Timeout="3000" />
+        <CustomAction Code="Lua.DoString(&quot;EquipItemByName(6256)&quot;);" />
+        <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+      </If>
+
+      <WaitAction Condition="false" Timeout="2000" />
+    </If>
+  </SubRoutine>
+
+</Professionbuddy>
+
+
