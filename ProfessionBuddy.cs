@@ -127,8 +127,20 @@ namespace HighVoltz
         public override void Start()
         {
             Debug("Start Called");
+
+            // Guard: if the player is not in-world (e.g. character selection screen),
+            // Lua injection will timeout and leave the executor in a corrupt state,
+            // causing a crash 134 on the next Start() attempt.
+            if (!StyxWoW.IsInGame)
+            {
+                Logging.Write(System.Windows.Media.Colors.Red, "[ProfessionBuddy] Cannot start — not in game. Log in first.");
+                return;
+            }
+
             IsRunning = true;
             // reattach lua events on bot start in case it they get destroyed from loging out of game
+            // Reset first: after a logout the Lua globals are gone; stale frame/table names cause NullReference.
+            Lua.Events.Reset();
             Lua.Events.DetachEvent("BAG_UPDATE", OnBagUpdate);
             Lua.Events.DetachEvent("SKILL_LINES_CHANGED", OnSkillUpdate);
             Lua.Events.DetachEvent("SPELLS_CHANGED", OnSpellsChanged);

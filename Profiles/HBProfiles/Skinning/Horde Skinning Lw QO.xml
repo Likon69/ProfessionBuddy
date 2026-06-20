@@ -20,7 +20,7 @@
 <Blackspot X="-2482.034" Y="6969.319" Z="-2.031194" Radius="50" />
 </Blackspots>
 <QuestOrder>
-<CustomBehavior File="UserSettings" LootMobs="True" PullDistance="35" TrainNewSkills="False" LearnFlightPaths="False" KillBetweenHotspots="True" LogoutForInactivity="False" SkinMobs="True" NinjaSkin="True" />
+<CustomBehavior File="UserSettings" LootMobs="True" PullDistance="35" TrainNewSkills="False" LearnFlightPaths="True" KillBetweenHotspots="True" LogoutForInactivity="False" SkinMobs="True" NinjaSkin="True" />
 <CustomBehavior File="Message" Text="Loading Horde Alpha QO for LW + Skinning PB profile" LogColor="GreenYellow" />
 <If Condition="(Me.GetSkill(Styx.SkillLine.Leatherworking).CurrentValue &gt;= 1) &amp;&amp; (Me.GetSkill(Styx.SkillLine.Leatherworking).CurrentValue &lt;= 100)" >
 	<If Condition="Me.GetSkill(Styx.SkillLine.Skinning).CurrentValue &lt;= 75">
