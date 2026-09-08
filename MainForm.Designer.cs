@@ -315,6 +315,7 @@
             this.ActionGridView.Location = new System.Drawing.Point(4, 4);
             this.ActionGridView.Margin = new System.Windows.Forms.Padding(4);
             this.ActionGridView.MultiSelect = false;
+            this.ActionGridView.BackgroundColor = System.Drawing.SystemColors.Window;
             this.ActionGridView.Name = "ActionGridView";
             this.ActionGridView.RowHeadersVisible = false;
             this.ActionGridView.RowHeadersWidth = 21;
@@ -673,12 +674,13 @@
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(859, 692);
             this.Controls.Add(this.MainSplitContainer);
             this.DoubleBuffered = true;
+            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(4);
             this.MinimumSize = new System.Drawing.Size(874, 728);
             this.Name = "MainForm";

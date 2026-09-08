@@ -17,7 +17,7 @@ namespace HighVoltz.Composites
             : base(CsharpCodeType.Declaration)
         {
             Properties["Code"] = new MetaProp("Code", typeof (string),
-                                              new EditorAttribute(typeof (MultilineStringEditor), typeof (UITypeEditor)),
+                                              new EditorAttribute(typeof (MultilineTextEditor), typeof (UITypeEditor)),
                                               new DisplayNameAttribute(Pb.Strings["Action_Common_Code"]));
 
             Code = "";

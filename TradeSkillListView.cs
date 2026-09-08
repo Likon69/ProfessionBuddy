@@ -48,6 +48,7 @@ namespace HighVoltz
             TradeDataView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             TradeDataView.ColumnHeadersHeight = 21;
             TradeDataView.RowTemplate.Height = 16;
+            TradeDataView.BackgroundColor = SystemColors.Window;
             //table layout
             tabTableLayout = new TableLayoutPanel();
             tabTableLayout.ColumnCount = 2;

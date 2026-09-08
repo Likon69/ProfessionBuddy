@@ -53,7 +53,7 @@ namespace HighVoltz.Composites
 
             Properties["Condition"] = new MetaProp("Condition",
                                                    typeof (string),
-                                                   new EditorAttribute(typeof (MultilineStringEditor),
+                                                   new EditorAttribute(typeof (MultilineTextEditor),
                                                                        typeof (UITypeEditor)),
                                                    new DisplayNameAttribute(
                                                        Professionbuddy.Instance.Strings["FlowControl_If_Condition"]));

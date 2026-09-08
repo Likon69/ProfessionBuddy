@@ -24,7 +24,7 @@ namespace HighVoltz.Composites
                                                  new DisplayNameAttribute(Pb.Strings["Action_Common_Timeout"]));
 
             Properties["Condition"] = new MetaProp("Condition", typeof (string),
-                                                   new EditorAttribute(typeof (MultilineStringEditor),
+                                                   new EditorAttribute(typeof (MultilineTextEditor),
                                                                        typeof (UITypeEditor)),
                                                    new DisplayNameAttribute(Pb.Strings["Action_WaitAction_Condition"]));
 
