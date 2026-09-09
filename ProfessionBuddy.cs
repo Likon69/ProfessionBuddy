@@ -315,35 +315,39 @@ namespace HighVoltz
             }
         }
 
+        private readonly object _tradeSkillLocker = new object();
+
         private void OnSkillUpdateTimerCB()
         {
             Lua.Events.AttachEvent("SKILL_LINES_CHANGED", OnSkillUpdate);
             try
             {
-                UpdateMaterials();
-                // check if there was any tradeskills added or removed.
-                WoWSkill[] skills = SupportedTradeSkills;
-                bool changed = skills.
-                                   Count(s => TradeSkillList.Count(l => l.SkillLine == (SkillLine) s.Id) == 1) !=
-                               TradeSkillList.Count ||
-                               skills.Length != TradeSkillList.Count;
-                if (changed)
+                lock (_tradeSkillLocker)
                 {
-                    Debug("A profession was added or removed. Reloading Tradeskills (OnSkillUpdateTimerCB)");
-                    OnTradeSkillsLoaded += Professionbuddy_OnTradeSkillsLoaded;
-                    LoadTradeSkills();
-                }
-                else
-                {
-                    Debug("Updated tradeskills from OnSkillUpdateTimerCB");
-                    foreach (TradeSkill ts in TradeSkillList)
+                    UpdateMaterials();
+                    WoWSkill[] skills = SupportedTradeSkills;
+                    bool changed = skills.
+                                       Count(s => TradeSkillList.Count(l => l.SkillLine == (SkillLine) s.Id) == 1) !=
+                                   TradeSkillList.Count ||
+                                   skills.Length != TradeSkillList.Count;
+                    if (changed)
                     {
-                        ts.PulseSkill();
+                        Debug("A profession was added or removed. Reloading Tradeskills (OnSkillUpdateTimerCB)");
+                        OnTradeSkillsLoaded += Professionbuddy_OnTradeSkillsLoaded;
+                        LoadTradeSkills();
                     }
-                    if (MainForm.IsValid)
+                    else
                     {
-                        MainForm.Instance.RefreshTradeSkillTabs();
-                        MainForm.Instance.RefreshActionTree(typeof (CastSpellAction));
+                        Debug("Updated tradeskills from OnSkillUpdateTimerCB");
+                        foreach (TradeSkill ts in TradeSkillList)
+                        {
+                            ts.PulseSkill();
+                        }
+                        if (MainForm.IsValid)
+                        {
+                            MainForm.Instance.RefreshTradeSkillTabs();
+                            MainForm.Instance.RefreshActionTree(typeof (CastSpellAction));
+                        }
                     }
                 }
             }
@@ -610,59 +614,42 @@ namespace HighVoltz
 
         public void LoadTradeSkills()
         {
-            new Timer(state =>
-                          {
-                              try
-                              {
-                                  lock (TradeSkillList)
-                                  {
-                                      TradeSkillList.Clear();
-                                      //IEnumerable<WoWSkill> skillList = from skill in TradeSkill.SupportedSkills
-                                      //                                  select Me.GetSkill(skill);
-
-                                      //foreach (WoWSkill skill in skillList)
-                                      //{
-                                      //    Log("Adding TradeSkill {0}", skill.Name);
-                                      //    TradeSkill ts = TradeSkill.GetTradeSkill((SkillLine)skill.Id);
-                                      //    if (ts != null)
-                                      //    {
-                                      //        TradeSkillList.Add(ts);
-                                      //    }
-                                      //    else
-                                      //    {
-                                      //        IsTradeSkillsLoaded = false;
-                                      //        Log("Unable to load tradeskill {0}", (SkillLine)skill.Id);
-                                      //        return;
-                                      //    }
-                                      //}
-                                      foreach (WoWSkill skill in SupportedTradeSkills)
-                                      {
-                                          Log("Adding TradeSkill {0}", skill.Name);
-                                          TradeSkill ts = TradeSkill.GetTradeSkill((SkillLine) skill.Id);
-                                          if (ts != null)
-                                          {
-                                              TradeSkillList.Add(ts);
-                                          }
-                                          else
-                                          {
-                                              IsTradeSkillsLoaded = false;
-                                              Log("Unable to load tradeskill {0}", (SkillLine) skill.Id);
-                                              return;
-                                          }
-                                      }
-                                  }
-                                  Log("Done Loading Tradeskills.");
-                                  IsTradeSkillsLoaded = true;
-                                  if (OnTradeSkillsLoaded != null)
-                                  {
-                                      OnTradeSkillsLoaded(this, null);
-                                  }
-                              }
-                              catch (Exception ex)
-                              {
-                                  Logging.Write(Color.Red, ex.ToString());
-                              }
-                          }, null, 0, Timeout.Infinite);
+            var newTradeSkills = new List<TradeSkill>();
+            try
+            {
+                foreach (WoWSkill skill in SupportedTradeSkills)
+                {
+                    Log("Adding TradeSkill {0}", skill.Name);
+                    TradeSkill ts = TradeSkill.GetTradeSkill((SkillLine) skill.Id);
+                    if (ts != null)
+                    {
+                        newTradeSkills.Add(ts);
+                    }
+                    else
+                    {
+                        IsTradeSkillsLoaded = false;
+                        Log("Unable to load tradeskill {0}", (SkillLine) skill.Id);
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Write(Color.Red, ex.ToString());
+            }
+            finally
+            {
+                lock (_tradeSkillLocker)
+                {
+                    TradeSkillList = newTradeSkills;
+                }
+                Log("Done Loading Tradeskills.");
+                IsTradeSkillsLoaded = true;
+                if (OnTradeSkillsLoaded != null)
+                {
+                    OnTradeSkillsLoaded(this, null);
+                }
+            }
         }
 
         public void UpdateMaterials()
