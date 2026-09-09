@@ -159,7 +159,7 @@
     </If>
     <CallSubRoutine SubRoutineName="FishOnce" />
   </While>
-  <If Condition="Cooking.Level &gt;= 175 &amp;&amp; Cooking.Level &lt; 250 &amp;&amp; !KnowsRecipe(20916)" IgnoreCanRun="True">
+  <If Condition="Cooking.Level &gt;= 180 &amp;&amp; Cooking.Level &lt; 250 &amp;&amp; !KnowsRecipe(20916)" IgnoreCanRun="True">
     <If Condition="!HasItem(17062)" IgnoreCanRun="True">
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: buying Recipe: Mithril Head Trout and lures at Lindea Rabonne in Southshore.&quot;, Cooking.Level);" />
       <CustomAction Code="CacheItems();" />
@@ -205,13 +205,194 @@
     </If>
     <CallSubRoutine SubRoutineName="FishOnce" />
   </While>
-  <If Condition="Cooking.Level &gt;= 250" IgnoreCanRun="True">
-    <CustomAction Code="Log(System.Drawing.Color.Red, &quot;Cooking {0}: segment 2a ends at 250. The next segment is not written yet. Stopping.&quot;, Cooking.Level);" />
+  <If Condition="Cooking.Level &gt;= 250 &amp;&amp; Cooking.Level &lt; 300 &amp;&amp; (!(KnowsRecipe(18243) || HasItem(13945)) || !(KnowsRecipe(18247) || HasItem(13949)))" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: recipes from Gikkix and Vivianna are needed. Going to Kalimdor.&quot;, Cooking.Level);" />
+    <CallSubRoutine SubRoutineName="KalimdorRecipes" />
+  </If>
+  <If Condition="Me.MapId == 1 &amp;&amp; Cooking.Level &gt;= 250 &amp;&amp; Cooking.Level &lt; 300" IgnoreCanRun="True">
+    <CallSubRoutine SubRoutineName="KalimdorRecipes" />
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Cooking.Level &gt;= 250 &amp;&amp; Cooking.Level &lt; 295 &amp;&amp; !KnowsRecipe(18243) &amp;&amp; HasItem(13945)" IgnoreCanRun="True">
+    <CustomAction Code="LearnRecipeFromBag(13945); LearnRecipeFromBag(13946);" />
+    <WaitAction Condition="false" Timeout="2500" />
+    <CustomAction Code="knownCooking = null;" />
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Cooking.Level &gt;= 275 &amp;&amp; Cooking.Level &lt; 325 &amp;&amp; !KnowsRecipe(18247) &amp;&amp; HasItem(13949)" IgnoreCanRun="True">
+    <CustomAction Code="LearnRecipeFromBag(13949);" />
+    <WaitAction Condition="false" Timeout="2500" />
+    <CustomAction Code="knownCooking = null;" />
+  </If>
+  <While Condition="Me.MapId == 0 &amp;&amp; Cooking.Level &gt;= 250 &amp;&amp; Cooking.Level &lt; 295 &amp;&amp; KnowsRecipe(18244) &amp;&amp; (InbagCount(13759) + InbagCount(13760)) &gt;= 20" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: {1} Raw Nightfin Snapper and {2} Raw Sunscale Salmon to cook.&quot;, Cooking.Level, InbagCount(13759), InbagCount(13760));" />
+    <CallSubRoutine SubRoutineName="Campfire" />
+    <While Condition="Cooking.Level &lt; 295 &amp;&amp; InbagCount(13760) &gt;= 1 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(18244);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <While Condition="Cooking.Level &lt; 295 &amp;&amp; InbagCount(13759) &gt;= 1 &amp;&amp; InbagCount(159) &gt;= 1 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(18243);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <CallSubRoutine SubRoutineName="CheckSkillCaps" />
+  </While>
+  <While Condition="Me.MapId == 0 &amp;&amp; Cooking.Level &gt;= 275 &amp;&amp; Cooking.Level &lt; 300 &amp;&amp; KnowsRecipe(18247) &amp;&amp; InbagCount(13889) &gt;= 20" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: {1} Raw Whitescale Salmon to cook.&quot;, Cooking.Level, InbagCount(13889));" />
+    <CallSubRoutine SubRoutineName="Campfire" />
+    <While Condition="Cooking.Level &lt; 300 &amp;&amp; InbagCount(13889) &gt;= 1 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(18247);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <CallSubRoutine SubRoutineName="CheckSkillCaps" />
+  </While>
+  <While Condition="Me.MapId == 0 &amp;&amp; Cooking.Level &gt;= 250 &amp;&amp; Cooking.Level &lt; 275 &amp;&amp; KnowsRecipe(18244) &amp;&amp; (InbagCount(13759) + InbagCount(13760)) &lt; 20" IgnoreCanRun="True">
+    <If Condition="DistanceTo(1045.8, -2098.4, 54.7) &gt; 3" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: going to Darrowmere Lake in Western Plaguelands for Nightfin Snapper and Sunscale Salmon.&quot;, Cooking.Level);" />
+      <CallSubRoutine SubRoutineName="SellJunkNearest" />
+      <MoveToAction Location="1045.8, -2098.4, 54.7" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <CustomAction Code="FaceAngle(5.2f);" />
+    </If>
+    <CallSubRoutine SubRoutineName="FishOnce" />
+  </While>
+  <While Condition="Me.MapId == 0 &amp;&amp; KnowsRecipe(18247) &amp;&amp; ((Cooking.Level &gt;= 275 &amp;&amp; Cooking.Level &lt; 300 &amp;&amp; InbagCount(13889) &lt; 20 &amp;&amp; (Cooking.Level &gt;= 295 || (InbagCount(13759) + InbagCount(13760)) &lt; 20)) || (Cooking.Level &gt;= 300 &amp;&amp; Cooking.Level &lt; 320 &amp;&amp; InbagCount(13889) &lt; 80))" IgnoreCanRun="True">
+    <If Condition="DistanceTo(2121.7, -4415.0, 73.9) &gt; 3" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: going to Lake Mereldar in Eastern Plaguelands for Whitescale Salmon.&quot;, Cooking.Level);" />
+      <CallSubRoutine SubRoutineName="SellJunkNearest" />
+      <MoveToAction Location="2121.7, -4415.0, 73.9" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <CustomAction Code="FaceAngle(2.2f);" />
+    </If>
+    <CallSubRoutine SubRoutineName="FishOnce" />
+  </While>
+  <If Condition="Me.MapId == 0 &amp;&amp; Cooking.Level &gt;= 300 &amp;&amp; Cooking.Level &lt; 350 &amp;&amp; InbagCount(13889) &gt;= 80" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0} with {1} Raw Whitescale Salmon: going to Outland for the Master rank.&quot;, Cooking.Level, InbagCount(13889));" />
+    <CallSubRoutine SubRoutineName="StormwindToOutland" />
+  </If>
+  <While Condition="Me.MapId == 530 &amp;&amp; Cooking.Level &gt;= 300 &amp;&amp; Cooking.Level &lt; 320 &amp;&amp; KnowsRecipe(18247) &amp;&amp; InbagCount(13889) &gt;= 1 &amp;&amp; Cooking.MaxLevel &gt;= 375" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: {1} Raw Whitescale Salmon to cook.&quot;, Cooking.Level, InbagCount(13889));" />
+    <CallSubRoutine SubRoutineName="Campfire" />
+    <While Condition="Cooking.Level &lt; 320 &amp;&amp; InbagCount(13889) &gt;= 1 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(18247);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+  </While>
+  <If Condition="Me.MapId == 530 &amp;&amp; Cooking.Level &gt;= 300 &amp;&amp; Cooking.Level &lt; 320 &amp;&amp; InbagCount(13889) == 0 &amp;&amp; Cooking.MaxLevel &gt;= 375" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.Red, &quot;Cooking {0}: no Raw Whitescale Salmon left before 320 and nothing else to cook in Outland. Stopping.&quot;, Cooking.Level);" />
     <CustomAction Code="TreeRoot.Stop();" />
     <WaitAction Condition="false" Timeout="5000" />
   </If>
-  <CustomAction Code="knownCooking = null; Log(System.Drawing.Color.Red, &quot;Nothing matched. Cooking {0}/{1}, Fishing {2}/{3}, zone {4}, tradeskill window {5}, PB HasRecipe(37836)={6}, IsSpellKnown(37836)={7}, PB tradeskills {8}&quot;, Cooking.Level, Cooking.MaxLevel, Fishing.Level, Fishing.MaxLevel, Me.ZoneId, KnowsRecipe(37836) ? knownCooking : knownCooking, HasRecipe(37836), Lua.GetReturnVal&lt;int&gt;(&quot;return IsSpellKnown(37836) and 1 or 0&quot;, 0), PbRecipeState());" />
-  <WaitAction Condition="false" Timeout="5000" />
+  <If Condition="Me.MapId == 530 &amp;&amp; Cooking.Level &gt;= 320 &amp;&amp; Cooking.Level &lt; 350 &amp;&amp; !KnowsRecipe(42296)" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: learning Stewed Trout from Kylene in Shattrath.&quot;, Cooking.Level);" />
+    <FlyToAction Dismount="True" Location="-1767.14, 5135.39, -37.2" />
+    <TrainSkillAction NpcEntry="19186" Location="-1767.14, 5135.39, -37.2" />
+    <CustomAction Code="Lua.DoString(&quot;CloseTrainer()&quot;);" />
+    <WaitAction Condition="false" Timeout="1500" />
+    <CustomAction Code="knownCooking = null;" />
+  </If>
+  <While Condition="Me.MapId == 530 &amp;&amp; Cooking.Level &gt;= 320 &amp;&amp; Cooking.Level &lt; 350 &amp;&amp; KnowsRecipe(42296) &amp;&amp; InbagCount(27422) &gt;= 20" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: {1} Barbed Gill Trout to cook.&quot;, Cooking.Level, InbagCount(27422));" />
+    <CallSubRoutine SubRoutineName="Campfire" />
+    <While Condition="Cooking.Level &lt; 350 &amp;&amp; InbagCount(27422) &gt;= 1 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(42296);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <CallSubRoutine SubRoutineName="CheckSkillCaps" />
+  </While>
+  <While Condition="Me.MapId == 530 &amp;&amp; Cooking.Level &gt;= 300 &amp;&amp; Cooking.Level &lt; 350 &amp;&amp; Cooking.MaxLevel &gt;= 375 &amp;&amp; InbagCount(27422) &lt; 20 &amp;&amp; !(Cooking.Level &lt; 320 &amp;&amp; InbagCount(13889) &gt;= 1)" IgnoreCanRun="True">
+    <If Condition="DistanceTo(-279.86, 5551.56, 22.51) &gt; 3" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: going to the Cenarion Refuge lake for Barbed Gill Trout.&quot;, Cooking.Level);" />
+      <CallSubRoutine SubRoutineName="SellJunkNearest" />
+      <FlyToAction Dismount="True" Location="-279.86, 5551.56, 22.51" />
+      <If Condition="InbagCount(6532) &lt; 5" IgnoreCanRun="True">
+        <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Buying Bright Baubles at Juno Dufrain.&quot;);" />
+        <BuyItemAction NpcEntry="18911" Location="-279.86, 5551.56, 22.51" ItemID="6532" BuyItemType="SpecificItem" Count="20" BuyAdditively="False" />
+        <BuyItemAction NpcEntry="18911" Location="-279.86, 5551.56, 22.51" ItemID="6533" BuyItemType="SpecificItem" Count="2" BuyAdditively="False" />
+        <WaitAction Condition="false" Timeout="2000" />
+        <BuyItemAction NpcEntry="18911" Location="-279.86, 5551.56, 22.51" ItemID="6532" BuyItemType="SpecificItem" Count="20" BuyAdditively="False" />
+        <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+        <WaitAction Condition="false" Timeout="1500" />
+      </If>
+      <MoveToAction Location="-279.86, 5551.56, 22.51" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <CustomAction Code="FaceWater(-297.0, 5563.0, 18.4);" />
+    </If>
+    <CallSubRoutine SubRoutineName="FishOnce" />
+  </While>
+  <If Condition="Me.MapId == 530 &amp;&amp; Cooking.Level &gt;= 350" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: leaving Outland for Stormwind.&quot;, Cooking.Level);" />
+    <CallSubRoutine SubRoutineName="OutlandToStormwind" />
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Cooking.Level &gt;= 350" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: going to Northrend for the Grand Master rank.&quot;, Cooking.Level);" />
+    <CallSubRoutine SubRoutineName="StormwindToNorthrend" />
+  </If>
+  <If Condition="Me.MapId == 571 &amp;&amp; Cooking.Level &gt;= 350 &amp;&amp; (!KnowsRecipe(45560) || !KnowsRecipe(45569) || !KnowsRecipe(58065) || (Cooking.Level &gt;= 400 &amp;&amp; !KnowsRecipe(64358))) &amp;&amp; (var3 == null ? 0 : (int)var3) &lt; 3" IgnoreCanRun="True">
+    <CustomAction Code="var3 = (var3 == null ? 0 : (int)var3) + 1; Log(System.Drawing.Color.YellowGreen, &quot;Northrend recipes missing, visiting Rollick MacKreel, attempt {0}.&quot;, var3);" />
+    <CallSubRoutine SubRoutineName="TrainCooking" />
+    <CallSubRoutine SubRoutineName="TrainFishing" />
+  </If>
+  <While Condition="Me.MapId == 571 &amp;&amp; InbagCount(36781) &gt;= 1 &amp;&amp; Me.FreeNormalBagSlots &gt;= 2" IgnoreCanRun="True">
+    <CustomAction Code="var c = Me.BagItems.FirstOrDefault(i =&gt; i.IsValid &amp;&amp; i.Entry == 36781); if (c != null) { Log(System.Drawing.Color.YellowGreen, &quot;Opening a Darkwater Clam.&quot;); c.UseContainerItem(); }" />
+    <WaitAction Condition="false" Timeout="1200" />
+  </While>
+  <While Condition="Me.MapId == 571 &amp;&amp; Cooking.Level &gt;= 350 &amp;&amp; Cooking.Level &lt; 425 &amp;&amp; ((KnowsRecipe(45560) &amp;&amp; Cooking.Level &lt; 380 &amp;&amp; InbagCount(41803) &gt;= 20) || (KnowsRecipe(45569) &amp;&amp; Cooking.Level &lt; 415 &amp;&amp; InbagCount(41802) &gt;= 20) || (KnowsRecipe(58065) &amp;&amp; Cooking.Level &lt; 415 &amp;&amp; InbagCount(36782) &gt;= 20) || (KnowsRecipe(64358) &amp;&amp; Cooking.Level &gt;= 400 &amp;&amp; InbagCount(41805) &gt;= 30))" IgnoreCanRun="True">
+    <CustomAction Code="var3 = 0; Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}: rockfin {1}, manta ray {2}, clam meat {3}, man o' war {4} to cook.&quot;, Cooking.Level, InbagCount(41803), InbagCount(41802), InbagCount(36782), InbagCount(41805));" />
+    <CallSubRoutine SubRoutineName="Campfire" />
+    <While Condition="Cooking.Level &lt; 380 &amp;&amp; KnowsRecipe(45560) &amp;&amp; InbagCount(41803) &gt;= 1 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(45560);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <While Condition="Cooking.Level &lt; 415 &amp;&amp; KnowsRecipe(45569) &amp;&amp; InbagCount(41802) &gt;= 1 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(45569);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <While Condition="Cooking.Level &lt; 415 &amp;&amp; KnowsRecipe(58065) &amp;&amp; InbagCount(36782) &gt;= 2 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(58065);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <While Condition="Cooking.Level &gt;= 400 &amp;&amp; Cooking.Level &lt; 425 &amp;&amp; KnowsRecipe(64358) &amp;&amp; InbagCount(41805) &gt;= 3 &amp;&amp; NearFire()" IgnoreCanRun="True">
+      <CustomAction Code="CastRecipe(64358);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="1000" />
+      <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+    </While>
+    <CallSubRoutine SubRoutineName="CheckSkillCaps" />
+  </While>
+  <While Condition="Me.MapId == 571 &amp;&amp; ((Cooking.Level &gt;= 350 &amp;&amp; Cooking.Level &lt; 425 &amp;&amp; KnowsRecipe(45569)) || (Cooking.Level &gt;= 425 &amp;&amp; Fishing.Level &lt; 450)) &amp;&amp; !((KnowsRecipe(45560) &amp;&amp; Cooking.Level &lt; 380 &amp;&amp; InbagCount(41803) &gt;= 20) || (Cooking.Level &lt; 415 &amp;&amp; InbagCount(41802) &gt;= 20) || (Cooking.Level &lt; 415 &amp;&amp; InbagCount(36782) &gt;= 20) || (Cooking.Level &gt;= 400 &amp;&amp; Cooking.Level &lt; 425 &amp;&amp; InbagCount(41805) &gt;= 30))" IgnoreCanRun="True">
+    <If Condition="DistanceTo(2610.58, 4901.38, 0.75) &gt; 3" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}, Fishing {1}: going to the Borean Tundra coast near Valiance Keep.&quot;, Cooking.Level, Fishing.Level);" />
+      <CallSubRoutine SubRoutineName="SellJunkNearest" />
+      <If Condition="InbagCount(6532) &lt; 5" IgnoreCanRun="True">
+        <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Buying Bright Baubles at Beem Goldsprocket in Valiance Keep.&quot;);" />
+        <FlyToAction Dismount="True" Location="2118.2, 5244.4, 19.5" />
+        <BuyItemAction NpcEntry="27012" Location="2118.2, 5244.4, 19.5" ItemID="6532" BuyItemType="SpecificItem" Count="40" BuyAdditively="False" />
+        <WaitAction Condition="false" Timeout="2000" />
+        <BuyItemAction NpcEntry="27012" Location="2118.2, 5244.4, 19.5" ItemID="6532" BuyItemType="SpecificItem" Count="40" BuyAdditively="False" />
+        <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+        <WaitAction Condition="false" Timeout="1500" />
+      </If>
+      <FlyToAction Dismount="True" Location="2610.58, 4901.38, 0.75" />
+      <MoveToAction Location="2610.58, 4901.38, 0.75" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <CustomAction Code="FaceAngle(3.8f);" />
+    </If>
+    <If Condition="Me.FreeNormalBagSlots &lt;= 3" IgnoreCanRun="True">
+      <CallSubRoutine SubRoutineName="SellJunkNearest" />
+      <MoveToAction Location="2610.58, 4901.38, 0.75" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <CustomAction Code="FaceAngle(3.8f);" />
+    </If>
+    <CallSubRoutine SubRoutineName="FishOnce" />
+  </While>
+  <If Condition="Cooking.Level &gt;= 425 &amp;&amp; Fishing.Level &gt;= 450" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.Red, &quot;Cooking {0}, Fishing {1}: nothing more to do. Cooking above 425 needs the Dalaran cooking dailies. Stopping.&quot;, Cooking.Level, Fishing.Level);" />
+    <CustomAction Code="TreeRoot.Stop();" />
+    <WaitAction Condition="false" Timeout="5000" />
+  </If>
+  <CustomAction Code="EndOfPass();" />
+  <WaitAction Condition="false" Timeout="1000" />
   <SubRoutine SubRoutineName="TrainFishing">
     <If Condition="Hub() == 1" IgnoreCanRun="True">
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Fishing {0}/{1}: training at Arnold Leland.&quot;, Fishing.Level, Fishing.MaxLevel);" />
@@ -229,6 +410,16 @@
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Fishing {0}/{1}: training at Grimnur Stonebrand in Ironforge.&quot;, Fishing.Level, Fishing.MaxLevel);" />
       <TrainSkillAction NpcEntry="5161" Location="-4605.72, -1093.62, 511.73" />
     </If>
+    <If Condition="Hub() == 5" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Fishing {0}/{1}: training at Juno Dufrain in Cenarion Refuge.&quot;, Fishing.Level, Fishing.MaxLevel);" />
+      <FlyToAction Dismount="True" Location="-279.86, 5551.56, 22.51" />
+      <TrainSkillAction NpcEntry="18911" Location="-279.86, 5551.56, 22.51" />
+    </If>
+    <If Condition="Hub() == 6" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Fishing {0}/{1}: training at Old Man Robert in Valiance Keep.&quot;, Fishing.Level, Fishing.MaxLevel);" />
+      <FlyToAction Dismount="True" Location="2144.24, 5234.32, 19.53" />
+      <TrainSkillAction NpcEntry="26993" Location="2144.24, 5234.32, 19.53" />
+    </If>
     <If Condition="Hub() == 0" IgnoreCanRun="True">
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Fishing {0}/{1}: training at Lee Brown.&quot;, Fishing.Level, Fishing.MaxLevel);" />
       <TrainSkillAction NpcEntry="1651" Location="-9382.08, -117.0, 58.98" />
@@ -241,7 +432,17 @@
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}/{1}: training at Stephen Ryback.&quot;, Cooking.Level, Cooking.MaxLevel);" />
       <TrainSkillAction NpcEntry="5482" Location="-8610.9, 364.64, 99.71" />
     </If>
-    <If Condition="Hub() &gt;= 2" IgnoreCanRun="True">
+    <If Condition="Hub() == 5" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}/{1}: training at Naka in Cenarion Refuge.&quot;, Cooking.Level, Cooking.MaxLevel);" />
+      <FlyToAction Dismount="True" Location="-178.01, 5527.99, 29.49" />
+      <TrainSkillAction NpcEntry="18993" Location="-178.01, 5527.99, 29.49" />
+    </If>
+    <If Condition="Hub() == 6" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}/{1}: training at Rollick MacKreel in Valiance Keep.&quot;, Cooking.Level, Cooking.MaxLevel);" />
+      <FlyToAction Dismount="True" Location="2148.0, 5231.63, 19.53" />
+      <TrainSkillAction NpcEntry="26989" Location="2148.0, 5231.63, 19.53" />
+    </If>
+    <If Condition="Hub() &gt;= 2 &amp;&amp; Hub() &lt;= 4" IgnoreCanRun="True">
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Cooking {0}/{1}: training at Daryl Riknussun in Ironforge.&quot;, Cooking.Level, Cooking.MaxLevel);" />
       <TrainSkillAction NpcEntry="5159" Location="-4761.46, -1188.56, 509.48" />
     </If>
@@ -254,10 +455,10 @@
     <CustomAction Code="knownCooking = null;" />
   </SubRoutine>
   <SubRoutine SubRoutineName="CheckSkillCaps">
-    <If Condition="Fishing.MaxLevel &gt; 0 &amp;&amp; Fishing.MaxLevel &lt; 300 &amp;&amp; Fishing.Level &gt;= Fishing.MaxLevel - 10" IgnoreCanRun="True">
+    <If Condition="Fishing.MaxLevel &gt; 0 &amp;&amp; Fishing.MaxLevel &lt; FishingCap() &amp;&amp; Fishing.Level &gt;= Fishing.MaxLevel - 10" IgnoreCanRun="True">
       <CallSubRoutine SubRoutineName="TrainFishing" />
     </If>
-    <If Condition="Cooking.MaxLevel &gt; 0 &amp;&amp; Cooking.MaxLevel &lt; 300 &amp;&amp; Cooking.Level &gt;= Cooking.MaxLevel - 10" IgnoreCanRun="True">
+    <If Condition="Cooking.MaxLevel &gt; 0 &amp;&amp; Cooking.MaxLevel &lt; CookingCap() &amp;&amp; Cooking.Level &gt;= Cooking.MaxLevel - 10" IgnoreCanRun="True">
       <CallSubRoutine SubRoutineName="TrainCooking" />
     </If>
   </SubRoutine>
@@ -283,7 +484,7 @@
     <If Condition="!NearFire()" IgnoreCanRun="True">
       <CustomAction Code="if (Me.IsMoving) WoWMovement.MoveStop();" />
       <WaitAction Condition="!Me.IsMoving &amp;&amp; !Me.IsCasting" Timeout="3000" />
-      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Casting Basic Campfire.&quot;); SpellManager.Cast(818);" />
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Casting Basic Campfire.&quot;); CastRecipe(818);" />
       <WaitAction Condition="NearFire()" Timeout="8000" />
       <If Condition="!NearFire()" IgnoreCanRun="True">
         <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;No campfire yet, Basic Campfire is probably on cooldown. Waiting 30 seconds.&quot;);" />
@@ -308,7 +509,7 @@
       <CallSubRoutine SubRoutineName="CheckSkillCaps" />
       <CallSubRoutine SubRoutineName="ApplyLure" />
       <CustomAction Code="FishingStatus();" />
-      <CustomAction Code="SpellManager.Cast(&quot;Fishing&quot;);" />
+      <CustomAction Code="Lua.DoString(&quot;CastSpellByName(\&quot;Fishing\&quot;)&quot;);" />
       <WaitAction Condition="false" Timeout="1000" />
       <CustomAction Code="var1 = ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().FirstOrDefault(u =&gt; u.IsValid &amp;&amp; u.SubType == WoWGameObjectType.FishingBobber &amp;&amp; u.CreatedByGuid == Me.Guid);" />
       <If Condition="var1 == null &amp;&amp; !Me.IsCasting" IgnoreCanRun="True">
@@ -352,6 +553,187 @@
       <WaitAction Condition="false" Timeout="1500" />
     </If>
   </SubRoutine>
+  <SubRoutine SubRoutineName="SellJunkNearest">
+    <If Condition="Me.FreeNormalBagSlots &lt;= 3" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Bags almost full, selling at the nearest vendor.&quot;);" />
+      <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Greys" ItemID="" Count="0" />
+      <If Condition="Cooking.Level &gt;= 295 &amp;&amp; (InbagCount(13759) + InbagCount(13760)) &gt; 0" IgnoreCanRun="True">
+        <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Specific" ItemID="13759,13760,159" Count="0" />
+      </If>
+      <If Condition="Cooking.Level &gt;= 350 &amp;&amp; (InbagCount(13889) + InbagCount(27422)) &gt; 0" IgnoreCanRun="True">
+        <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Specific" ItemID="13889,27422" Count="0" />
+      </If>
+      <If Condition="Cooking.Level &gt;= 425" IgnoreCanRun="True">
+        <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Specific" ItemID="41803,41802,41805,36782,36781,41808,41801,41806,41809,41813,41810,41812,41807,37705,44475" Count="0" />
+      </If>
+      <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Specific" ItemID="30816,6290,4592,4593,8364,13931,13932,13935,33048,34759,42942,43268,45932,6291,6289,6308,8365,6358,13757,13890,27425,27429,27438,37705,6303,6643,6645,6647,8366,13881,6292,6294,6295,6309,6310,6311,6363,6364,13885,13886,13882,13883,13884,13887,13891,13901,13902,13903,13904,13905" Count="0" />
+      <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+      <WaitAction Condition="false" Timeout="1500" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="KalimdorRecipes">
+    <If Condition="Me.MapId == 0" IgnoreCanRun="True">
+      <CallSubRoutine SubRoutineName="MenethilToTheramore" />
+    </If>
+    <If Condition="Me.MapId == 1 &amp;&amp; !HasItem(13945)" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to Gikkix in Tanaris for Nightfin Soup, Poached Sunscale Salmon and Refreshing Spring Water.&quot;); CacheItems();" />
+      <BuyItemAction NpcEntry="8137" Location="-6890.53, -4816.76, 8.78" ItemID="13945" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+      <BuyItemAction NpcEntry="8137" Location="-6890.53, -4816.76, 8.78" ItemID="13946" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+      <BuyItemAction NpcEntry="8137" Location="-6890.53, -4816.76, 8.78" ItemID="159" BuyItemType="SpecificItem" Count="60" BuyAdditively="False" />
+      <WaitAction Condition="false" Timeout="2000" />
+      <BuyItemAction NpcEntry="8137" Location="-6890.53, -4816.76, 8.78" ItemID="13945" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+      <BuyItemAction NpcEntry="8137" Location="-6890.53, -4816.76, 8.78" ItemID="13946" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+      <BuyItemAction NpcEntry="8137" Location="-6890.53, -4816.76, 8.78" ItemID="159" BuyItemType="SpecificItem" Count="60" BuyAdditively="False" />
+      <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+      <WaitAction Condition="false" Timeout="1500" />
+    </If>
+    <If Condition="Me.MapId == 1 &amp;&amp; !HasItem(13949)" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to Vivianna in Feathermoon Stronghold for Baked Salmon.&quot;);" />
+      <CallSubRoutine SubRoutineName="CoastToFeathermoon" />
+      <CustomAction Code="CacheItems();" />
+      <BuyItemAction NpcEntry="7947" Location="-4380.15, 3266.08, 13.63" ItemID="13949" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+      <BuyItemAction NpcEntry="7947" Location="-4380.15, 3266.08, 13.63" ItemID="6532" BuyItemType="SpecificItem" Count="20" BuyAdditively="False" />
+      <WaitAction Condition="false" Timeout="2000" />
+      <BuyItemAction NpcEntry="7947" Location="-4380.15, 3266.08, 13.63" ItemID="13949" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+      <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+      <WaitAction Condition="false" Timeout="1500" />
+      <CallSubRoutine SubRoutineName="FeathermoonToCoast" />
+    </If>
+    <If Condition="Me.MapId == 1 &amp;&amp; HasItem(13945) &amp;&amp; HasItem(13949)" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Recipes bought. Going back to the Eastern Kingdoms.&quot;);" />
+      <CallSubRoutine SubRoutineName="TheramoreToMenethil" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="StormwindToOutland">
+    <If Condition="Me.MapId == 0 &amp;&amp; Me.ZoneId != 4" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Stormwind portal to the Blasted Lands.&quot;);" />
+      <MoveToAction Location="-9007.58, 871.87, 129.69" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <InteractionAction InteractType="GameObject" Entry="195141" InteractDelay="1000" GameObjectType="SpellFocus" SpellFocus="Anvil" />
+      <WaitAction Condition="Me.ZoneId == 4" Timeout="30000" />
+      <WaitAction Condition="false" Timeout="3000" />
+    </If>
+    <If Condition="Me.MapId == 0 &amp;&amp; Me.ZoneId == 4" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going through the Dark Portal.&quot;);" />
+      <MoveToAction Location="-11895.44, -3206.94, -14.64" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <CustomAction Code="CTM(-11922.0, -3209.2, -14.8);" />
+      <WaitAction Condition="Me.MapId == 530" Timeout="30000" />
+      <WaitAction Condition="false" Timeout="3000" />
+    </If>
+    <If Condition="Me.MapId == 530" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;In Outland. Flying to Cenarion Refuge for Naka and Juno Dufrain.&quot;);" />
+      <FlyToAction Dismount="True" Location="-178.01, 5527.99, 29.49" />
+      <CallSubRoutine SubRoutineName="TrainCooking" />
+      <CallSubRoutine SubRoutineName="TrainFishing" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="OutlandToStormwind">
+    <If Condition="Me.MapId == 530" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Flying to the Shattrath portal to Stormwind.&quot;);" />
+      <FlyToAction Dismount="True" Location="-1792.78, 5406.54, -12.43" />
+      <MoveToAction Location="-1792.78, 5406.54, -12.43" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <InteractionAction InteractType="GameObject" Entry="183325" InteractDelay="1000" GameObjectType="SpellFocus" SpellFocus="Anvil" />
+      <WaitAction Condition="Me.MapId == 0" Timeout="30000" />
+      <WaitAction Condition="false" Timeout="3000" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="StormwindToNorthrend">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Stormwind Harbor pier for the Kraken.&quot;);" />
+    <MoveToAction Location="-8300.08, 1405.158, 4.422395" MoveType="Location" Pathing="Navigator" Entry="0" />
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Mount.Dismount(); Log(System.Drawing.Color.YellowGreen, &quot;Waiting for the Kraken.&quot;);" />
+    <WaitAction Condition="TransportAt(190536, -8288.8, 1424.7, 0)" Timeout="900000" />
+    <While Condition="!Me.IsOnTransport &amp;&amp; TransportAt(190536, -8288.8, 1424.7, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Board(190536);" />
+      <WaitAction Condition="Me.IsOnTransport" Timeout="700" />
+    </While>
+    <If Condition="Me.IsOnTransport" IgnoreCanRun="True">
+      <CustomAction Code="Towards(-8295.016, 1422.455, 9.477573, false);" />
+      <WaitAction Condition="false" Timeout="1500" />
+    </If>
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Log(System.Drawing.Color.YellowGreen, &quot;On board: {0}. Sailing to Valiance Keep.&quot;, Me.IsOnTransport);" />
+    <WaitAction Condition="TransportAt(190536, 2218.4, 5119.6, 0)" Timeout="900000" />
+    <While Condition="Me.IsOnTransport &amp;&amp; TransportAt(190536, 2218.4, 5119.6, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Towards(2234.375, 5132.568, 5.343217, true);" />
+      <WaitAction Condition="!Me.IsOnTransport" Timeout="700" />
+    </While>
+    <WaitAction Condition="false" Timeout="2000" />
+    <If Condition="Me.MapId == 571" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;In Northrend. Training at Rollick MacKreel and Old Man Robert.&quot;);" />
+      <CallSubRoutine SubRoutineName="TrainCooking" />
+      <CallSubRoutine SubRoutineName="TrainFishing" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="MenethilToTheramore">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Menethil Harbor pier for the Lady Mehley.&quot;);" />
+    <MoveToAction Location="-3904.1, -605.2, 5.3" MoveType="Location" Pathing="Navigator" Entry="0" />
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Mount.Dismount(); Log(System.Drawing.Color.YellowGreen, &quot;Waiting for the Lady Mehley.&quot;);" />
+    <WaitAction Condition="TransportAt(176231, -3905.2, -585.8, 0)" Timeout="900000" />
+    <While Condition="!Me.IsOnTransport &amp;&amp; TransportAt(176231, -3905.2, -585.8, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Board(176231);" />
+      <WaitAction Condition="Me.IsOnTransport" Timeout="700" />
+    </While>
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Log(System.Drawing.Color.YellowGreen, &quot;On board: {0}. Sailing to Theramore.&quot;, Me.IsOnTransport);" />
+    <WaitAction Condition="TransportAt(176231, -4016.4, -4740.6, 0)" Timeout="900000" />
+    <While Condition="Me.IsOnTransport &amp;&amp; TransportAt(176231, -4016.4, -4740.6, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Towards(-3999.359, -4723.525, 4.3211, true);" />
+      <WaitAction Condition="!Me.IsOnTransport" Timeout="700" />
+    </While>
+    <WaitAction Condition="false" Timeout="2000" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="TheramoreToMenethil">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Theramore pier for the Lady Mehley.&quot;);" />
+    <MoveToAction Location="-3999.067, -4726.306, 4.3842" MoveType="Location" Pathing="Navigator" Entry="0" />
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Mount.Dismount(); Log(System.Drawing.Color.YellowGreen, &quot;Waiting for the Lady Mehley.&quot;);" />
+    <WaitAction Condition="TransportAt(176231, -4016.4, -4740.6, 0)" Timeout="900000" />
+    <While Condition="!Me.IsOnTransport &amp;&amp; TransportAt(176231, -4016.4, -4740.6, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Board(176231);" />
+      <WaitAction Condition="Me.IsOnTransport" Timeout="700" />
+    </While>
+    <If Condition="Me.IsOnTransport" IgnoreCanRun="True">
+      <CustomAction Code="Towards(-4006.659, -4734.664, 6.0765, false);" />
+      <WaitAction Condition="false" Timeout="1500" />
+    </If>
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Log(System.Drawing.Color.YellowGreen, &quot;On board: {0}. Sailing to Menethil Harbor.&quot;, Me.IsOnTransport);" />
+    <WaitAction Condition="TransportAt(176231, -3905.2, -585.8, 0)" Timeout="900000" />
+    <While Condition="Me.IsOnTransport &amp;&amp; TransportAt(176231, -3905.2, -585.8, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Towards(-3904.1, -605.2, 5.3, true);" />
+      <WaitAction Condition="!Me.IsOnTransport" Timeout="700" />
+    </While>
+    <WaitAction Condition="false" Timeout="2000" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="CoastToFeathermoon">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Forgotten Coast pier for the Feathermoon Ferry.&quot;);" />
+    <MoveToAction Location="-4355.4, 2429.2, 6.5" MoveType="Location" Pathing="Navigator" Entry="0" />
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Mount.Dismount(); Log(System.Drawing.Color.YellowGreen, &quot;Waiting for the Feathermoon Ferry.&quot;);" />
+    <WaitAction Condition="TransportAt(177233, -4352.4, 2441.2, 0)" Timeout="900000" />
+    <While Condition="!Me.IsOnTransport &amp;&amp; TransportAt(177233, -4352.4, 2441.2, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Board(177233);" />
+      <WaitAction Condition="Me.IsOnTransport" Timeout="700" />
+    </While>
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Log(System.Drawing.Color.YellowGreen, &quot;On board: {0}. Sailing to Feathermoon.&quot;, Me.IsOnTransport);" />
+    <WaitAction Condition="TransportAt(177233, -4200.3, 3281.4, 0)" Timeout="900000" />
+    <While Condition="Me.IsOnTransport &amp;&amp; TransportAt(177233, -4200.3, 3281.4, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Towards(-4212.1, 3292.7, 6.2, true);" />
+      <WaitAction Condition="!Me.IsOnTransport" Timeout="700" />
+    </While>
+    <WaitAction Condition="false" Timeout="2000" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="FeathermoonToCoast">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Feathermoon pier for the ferry back.&quot;);" />
+    <MoveToAction Location="-4212.1, 3292.7, 6.2" MoveType="Location" Pathing="Navigator" Entry="0" />
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Mount.Dismount(); Log(System.Drawing.Color.YellowGreen, &quot;Waiting for the Feathermoon Ferry.&quot;);" />
+    <WaitAction Condition="TransportAt(177233, -4200.3, 3281.4, 0)" Timeout="900000" />
+    <While Condition="!Me.IsOnTransport &amp;&amp; TransportAt(177233, -4200.3, 3281.4, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Board(177233);" />
+      <WaitAction Condition="Me.IsOnTransport" Timeout="700" />
+    </While>
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Log(System.Drawing.Color.YellowGreen, &quot;On board: {0}. Sailing to the Forgotten Coast.&quot;, Me.IsOnTransport);" />
+    <WaitAction Condition="TransportAt(177233, -4352.4, 2441.2, 0)" Timeout="900000" />
+    <While Condition="Me.IsOnTransport &amp;&amp; TransportAt(177233, -4352.4, 2441.2, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Towards(-4355.4, 2429.2, 6.5, true);" />
+      <WaitAction Condition="!Me.IsOnTransport" Timeout="700" />
+    </While>
+    <WaitAction Condition="false" Timeout="2000" />
+  </SubRoutine>
   <SubRoutine SubRoutineName="SellJunkStormwind">
     <If Condition="Me.FreeNormalBagSlots &lt;= 3" IgnoreCanRun="True">
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Bags almost full, selling greys and cooked food at Catherine Leland.&quot;);" />
@@ -375,14 +757,24 @@
   <Declaration Code="string knownCooking = null;" />
   <Declaration Code="int castsWithoutBobber = 0;" />
   <Declaration Code="int fishingCasts = 0;" />
-  <Declaration Code="void FishingStatus() { fishingCasts++; if (fishingCasts % 10 != 0) return; Log(System.Drawing.Color.Gray, &quot;Fishing {0}/{1} after {2} casts. Bags: smallfish {3}, longjaw {4}, catfish {5}, mithril trout {6}, redgill {7}, free slots {8}.&quot;, Fishing.Level, Fishing.MaxLevel, fishingCasts, InbagCount(6291), InbagCount(6289), InbagCount(6308), InbagCount(8365), InbagCount(13758), Me.FreeNormalBagSlots); }" />
+  <Declaration Code="void FishingStatus() { fishingCasts++; if (fishingCasts % 10 != 0) return; Log(System.Drawing.Color.Gray, &quot;Fishing {0}/{1} after {2} casts. Bags: smallfish {3}, longjaw {4}, catfish {5}, mithril trout {6}, nightfin {7}, sunscale {8}, whitescale {9}, free slots {10}.&quot;, Fishing.Level, Fishing.MaxLevel, fishingCasts, InbagCount(6291), InbagCount(6289), InbagCount(6308), InbagCount(8365), InbagCount(13759), InbagCount(13760), InbagCount(13889), Me.FreeNormalBagSlots); }" />
   <Declaration Code="void NoBobber() { castsWithoutBobber++; if (castsWithoutBobber &lt; 3) return; castsWithoutBobber = 0; float newFacing = Me.Rotation + 0.7f; if (newFacing &gt; 6.28f) newFacing -= 6.28f; Log(System.Drawing.Color.YellowGreen, &quot;No bobber after 3 casts, probably facing land. Turning to {0:0.00} rad.&quot;, newFacing); Me.SetFacing(newFacing); WoWMovement.Move(Styx.WoWInternals.WoWMovement.MovementDirection.ForwardBackMovement); WoWMovement.MoveStop(Styx.WoWInternals.WoWMovement.MovementDirection.ForwardBackMovement); Thread.Sleep(800); }" />
   <Declaration Code="void RefreshCookingRecipes() { Lua.DoString(&quot;CastSpellByName(\&quot;Cooking\&quot;)&quot;); Thread.Sleep(1500); var r = Lua.GetReturnValues(&quot;TradeSkillOnlyShowMakeable(false) SetTradeSkillSubClassFilter(0, 1, 1) SetTradeSkillInvSlotFilter(0, 1, 1) ExpandTradeSkillSubClass(0) local t = {} for i = 1, GetNumTradeSkills() do local link = GetTradeSkillRecipeLink(i) if link then local id = link:match('enchant:(%d+)') if id then table.insert(t, id) end end end CloseTradeSkill() return '|' .. table.concat(t, '|') .. '|'&quot;); knownCooking = (r != null &amp;&amp; r.Count &gt; 0 &amp;&amp; r[0] != null) ? r[0] : &quot;||&quot;; Log(System.Drawing.Color.YellowGreen, &quot;Cooking recipes read from the tradeskill window: {0}&quot;, knownCooking); }" />
   <Declaration Code="bool KnowsRecipe(uint spellId) { if (knownCooking == null) RefreshCookingRecipes(); return knownCooking.Contains(&quot;|&quot; + spellId + &quot;|&quot;); }" />
-  <Declaration Code="void CacheItems() { Lua.DoString(&quot;GetItemInfo(30817) GetItemInfo(2678) GetItemInfo(6325) GetItemInfo(6328) GetItemInfo(6330) GetItemInfo(6529) GetItemInfo(6532) GetItemInfo(6533) GetItemInfo(6256) GetItemInfo(17062)&quot;); }" />
-  <Declaration Code="int Hub() { uint z = Me.ZoneId; if (Me.MapId != 0) return 0; if (z == 1519) return 1; if (z == 36 || z == 267 || z == 28 || z == 139 || z == 47) return 2; if (z == 11 || z == 45) return 3; if (z == 1 || z == 38 || z == 1537) return 4; return 0; }" />
+  <Declaration Code="void CacheItems() { Lua.DoString(&quot;GetItemInfo(30817) GetItemInfo(2678) GetItemInfo(6325) GetItemInfo(6328) GetItemInfo(6330) GetItemInfo(6529) GetItemInfo(6532) GetItemInfo(6533) GetItemInfo(6256) GetItemInfo(17062) GetItemInfo(13945) GetItemInfo(13946) GetItemInfo(13949) GetItemInfo(159)&quot;); }" />
+  <Declaration Code="WoWPoint TransportPos(uint entry) { var t = ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;(true, false).FirstOrDefault(o =&gt; o.Entry == entry); if (t == null) return WoWPoint.Empty; var m = t.GetWorldMatrix(); return new WoWPoint(m.M41, m.M42, m.M43); }" />
+  <Declaration Code="bool TransportAt(uint entry, double x, double y, double z) { var p = TransportPos(entry); return p != WoWPoint.Empty &amp;&amp; p.Distance(new WoWPoint(x, y, z)) &lt; 2; }" />
+  <Declaration Code="void Board(uint entry) { var p = TransportPos(entry); if (p == WoWPoint.Empty) return; Navigator.PlayerMover.MoveTowards(p); StyxWoW.SleepForLagDuration(); if (!Me.IsOnTransport) WoWMovement.Move(Styx.WoWInternals.WoWMovement.MovementDirection.JumpAscend, TimeSpan.FromMilliseconds(50)); }" />
+  <Declaration Code="void Towards(double x, double y, double z, bool jumpWhileOnTransport) { Navigator.PlayerMover.MoveTowards(new WoWPoint(x, y, z)); StyxWoW.SleepForLagDuration(); if (jumpWhileOnTransport &amp;&amp; Me.IsOnTransport) WoWMovement.Move(Styx.WoWInternals.WoWMovement.MovementDirection.JumpAscend, TimeSpan.FromMilliseconds(50)); }" />
+  <Declaration Code="void FaceAngle(float radians) { Me.SetFacing(radians); WoWMovement.Move(Styx.WoWInternals.WoWMovement.MovementDirection.ForwardBackMovement); WoWMovement.MoveStop(Styx.WoWInternals.WoWMovement.MovementDirection.ForwardBackMovement); Thread.Sleep(800); castsWithoutBobber = 0; }" />
+  <Declaration Code="uint FishingCap() { return Me.MapId == 530 ? 375u : Me.MapId == 571 ? 450u : 300u; }" />
+  <Declaration Code="uint CookingCap() { return Me.MapId == 530 ? 375u : Me.MapId == 571 ? 450u : 300u; }" />
+  <Declaration Code="int Hub() { uint z = Me.ZoneId; if (Me.MapId == 530) return 5; if (Me.MapId == 571) return 6; if (Me.MapId != 0) return 0; if (z == 1519) return 1; if (z == 36 || z == 267 || z == 28 || z == 139 || z == 47) return 2; if (z == 11 || z == 45) return 3; if (z == 1 || z == 38 || z == 1537) return 4; return 0; }" />
   <Declaration Code="bool FacingPoint(double x, double y, double z) { return WoWMathHelper.IsFacing(Me.Location, Me.RenderFacing, new WoWPoint(x, y, z), 0.5f); }" />
   <Declaration Code="void FaceWater(double x, double y, double z) { Log(System.Drawing.Color.YellowGreen, &quot;Facing the water at {0:0}, {1:0}.&quot;, x, y); Me.SetFacing(new WoWPoint(x, y, z)); WoWMovement.Move(Styx.WoWInternals.WoWMovement.MovementDirection.ForwardBackMovement); WoWMovement.MoveStop(Styx.WoWInternals.WoWMovement.MovementDirection.ForwardBackMovement); Thread.Sleep(800); castsWithoutBobber = 0; }" />
   <Declaration Code="void CastRecipe(uint spellId) { var sp = WoWSpell.FromId((int)spellId); if (sp == null) { Log(System.Drawing.Color.Red, &quot;Spell {0} not found in the spell database.&quot;, spellId); return; } if (Me.IsMoving) WoWMovement.MoveStop(); sp.Cast(); }" />
+  <Declaration Code="int lastState = -1;" />
+  <Declaration Code="int idlePasses = 0;" />
+  <Declaration Code="void EndOfPass() { int s = (int)Cooking.Level * 1000 + (int)Fishing.Level; if (s == lastState) idlePasses++; else { lastState = s; idlePasses = 0; } Log(System.Drawing.Color.Gray, &quot;End of pass. Cooking {0}/{1}, Fishing {2}/{3}, map {4}, zone {5}, recipes {6}.&quot;, Cooking.Level, Cooking.MaxLevel, Fishing.Level, Fishing.MaxLevel, Me.MapId, Me.ZoneId, knownCooking); if (idlePasses &gt;= 30) { Log(System.Drawing.Color.Red, &quot;No skill progress for {0} passes and no branch matched. Stopping.&quot;, idlePasses); TreeRoot.Stop(); } }" />
   <Declaration Code="string PbRecipeState() { try { return string.Join(&quot; &quot;, Professionbuddy.Instance.TradeSkillList.Select(ts =&gt; ts.Name + &quot;:&quot; + ts.Recipes.Count + &quot;/&quot; + ts.KnownRecipes.Count + &quot;/&quot; + ts.Recipes.ContainsKey(37836u))); } catch (Exception ex) { return ex.Message; } }" />
 </Professionbuddy>
