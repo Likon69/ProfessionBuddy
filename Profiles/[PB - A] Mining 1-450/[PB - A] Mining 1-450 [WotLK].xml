@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Professionbuddy>
+  <If Condition="SecondaryBot == null" IgnoreCanRun="True">
+    <ChangeBotAction BotName="Combat Bot" />
+    <WaitAction Condition="false" Timeout="3000" />
+  </If>
+  <If Condition="Me.IsHorde" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.Red, &quot;[Mining] Alliance only profile. Stopping in 20 seconds.&quot;);" />
+    <WaitAction Condition="false" Timeout="20000" />
+    <CustomAction Code="Lua.DoString(&quot;Logout()&quot;); TreeRoot.Stop();" />
+    <WaitAction Condition="false" Timeout="5000" />
+  </If>
+  <If Condition="Me.MapId == 1" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.Red, &quot;[Mining] This profile starts in the Eastern Kingdoms. Take the character to Stormwind and start again. Stopping.&quot;);" />
+    <CustomAction Code="TreeRoot.Stop();" />
+    <WaitAction Condition="false" Timeout="5000" />
+  </If>
+  <If Condition="!announced" IgnoreCanRun="True">
+    <CustomAction Code="announced = true; Log(System.Drawing.Color.DarkOliveGreen, &quot;[PB - A] Mining 1-450 [WotLK]. Mining {0}/{1}. GatherBuddy mail to alt: {2} ({3}).&quot;, Mining.Level, Mining.MaxLevel, Bots.Gatherbuddy.GatherbuddySettings.Instance.MailToAlt, Bots.Gatherbuddy.GatherbuddySettings.Instance.MailRecipient);" />
+    <CustomAction Code="Lua.DoString(&quot;SetCVar(\&quot;AutoLootDefault\&quot;, 1)&quot;);" />
+  </If>
+  <CustomAction Code="ConfigureGatherBuddy();" />
+  <If Condition="Mining.MaxLevel == 0" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining is not learned yet. Going to a mining trainer.&quot;);" />
+    <CallSubRoutine SubRoutineName="TrainMining" />
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; !HasMiningPick()" IgnoreCanRun="True">
+    <CallSubRoutine SubRoutineName="BuyMiningPick" />
+  </If>
+  <If Condition="NeedTrainer()" IgnoreCanRun="True">
+    <CallSubRoutine SubRoutineName="TrainMining" />
+  </If>
+  <If Condition="BagsFull()" IgnoreCanRun="True">
+    <CallSubRoutine SubRoutineName="EmptyBags" />
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 350" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Northrend for the Grand Master rank and Cobalt.&quot;, Mining.Level);" />
+    <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+    <CallSubRoutine SubRoutineName="StormwindToNorthrend" />
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 290 &amp;&amp; Mining.Level &lt; 350" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Outland for the Master rank and Fel Iron.&quot;, Mining.Level);" />
+    <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+    <CallSubRoutine SubRoutineName="StormwindToOutland" />
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Mining.Level &lt; 125 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;westfall&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Westfall for Copper and Tin.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <MoveToAction Location="-10677.6, 863.39, 42.85" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Westfall Copper-Tin.xml" />
+      <CustomAction Code="StartRoute(&quot;westfall&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 0 &amp;&amp; Mining.Level &lt; 125 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 125 &amp;&amp; Mining.Level &lt; 205 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;stranglethorn&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Stranglethorn Vale for Iron, Gold and Mithril.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <MoveToAction Location="-11487.0, -940.0, 28.0" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Stranglethorn Iron-Gold-Mithril.xml" />
+      <CustomAction Code="StartRoute(&quot;stranglethorn&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 125 &amp;&amp; Mining.Level &lt; 205 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 205 &amp;&amp; Mining.Level &lt; 255 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;hinterlands&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to the Hinterlands for Mithril and Truesilver.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <MoveToAction Location="-285.0, -3736.0, 238.05" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Hinterlands Mithril-Truesilver.xml" />
+      <CustomAction Code="StartRoute(&quot;hinterlands&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 205 &amp;&amp; Mining.Level &lt; 255 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 255 &amp;&amp; Mining.Level &lt; 290 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;plaguelands&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to the Western Plaguelands for Thorium.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <MoveToAction Location="2308.46, -1462.0, 100.69" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Western Plaguelands Thorium.xml" />
+      <CustomAction Code="StartRoute(&quot;plaguelands&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 0 &amp;&amp; Mining.Level &gt;= 255 &amp;&amp; Mining.Level &lt; 290 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Me.MapId == 530 &amp;&amp; Mining.Level &gt;= 350" IgnoreCanRun="True">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: leaving Outland for Stormwind.&quot;, Mining.Level);" />
+    <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+    <CallSubRoutine SubRoutineName="OutlandToStormwind" />
+  </If>
+  <If Condition="Me.MapId == 530 &amp;&amp; Mining.Level &lt; 325 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;hellfire&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Hellfire Peninsula for Fel Iron.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <FlyToAction Dismount="True" Location="35.81, 1510.02, 11.93" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Hellfire Fel Iron.xml" />
+      <CustomAction Code="StartRoute(&quot;hellfire&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 530 &amp;&amp; Mining.Level &lt; 325 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Me.MapId == 530 &amp;&amp; Mining.Level &gt;= 325 &amp;&amp; Mining.Level &lt; 350 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;terokkar&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Terokkar Forest for Adamantite.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <FlyToAction Dismount="True" Location="-3832.77, 3515.68, 288.46" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Terokkar Adamantite.xml" />
+      <CustomAction Code="StartRoute(&quot;terokkar&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 530 &amp;&amp; Mining.Level &gt;= 325 &amp;&amp; Mining.Level &lt; 350 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Me.MapId == 571 &amp;&amp; Mining.Level &lt; 400 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;borean&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Borean Tundra for Cobalt.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <FlyToAction Dismount="True" Location="2041.02, 5487.78, 0.67" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Borean Cobalt.xml" />
+      <CustomAction Code="StartRoute(&quot;borean&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 571 &amp;&amp; Mining.Level &lt; 400 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Me.MapId == 571 &amp;&amp; Mining.Level &gt;= 400 &amp;&amp; Mining.Level &lt; 450 &amp;&amp; CanGather()" IgnoreCanRun="True">
+    <If Condition="routeLoaded != &quot;icecrown&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: going to Icecrown for Saronite.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+      <FlyToAction Dismount="True" Location="5112.76, 1896.37, 712.18" />
+      <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\Icecrown Saronite.xml" />
+      <CustomAction Code="StartRoute(&quot;icecrown&quot;);" />
+    </If>
+    <CallSubRoutine SubRoutineName="EnsureGatherBuddy" />
+    <While Condition="Me.MapId == 571 &amp;&amp; Mining.Level &gt;= 400 &amp;&amp; Mining.Level &lt; 450 &amp;&amp; CanGather() &amp;&amp; GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="Gathering();" />
+    </While>
+  </If>
+  <If Condition="Mining.Level &gt;= 450" IgnoreCanRun="True">
+    <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+    <CustomAction Code="Log(System.Drawing.Color.Red, &quot;Mining {0}: skill capped. Nothing more to do. Stopping.&quot;, Mining.Level);" />
+    <CustomAction Code="TreeRoot.Stop();" />
+    <WaitAction Condition="false" Timeout="5000" />
+  </If>
+  <CustomAction Code="EndOfPass();" />
+  <SubRoutine SubRoutineName="EnsureCombatBot">
+    <If Condition="SecondaryBot == null || SecondaryBot.Name != &quot;Combat Bot&quot;" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.Gray, &quot;Switching to Combat Bot for travel.&quot;);" />
+      <ChangeBotAction BotName="Combat Bot" />
+      <WaitAction Condition="false" Timeout="3000" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="EnsureGatherBuddy">
+    <If Condition="!GatherBuddyActive()" IgnoreCanRun="True">
+      <CustomAction Code="UpdateBlacklist(); Log(System.Drawing.Color.YellowGreen, &quot;Switching to GatherBuddy on route {0}. Nodes above skill {1} are blacklisted.&quot;, routeLoaded, Mining.Level);" />
+      <ChangeBotAction BotName="GatherBuddy" />
+      <WaitAction Condition="false" Timeout="3000" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="TrainMining">
+    <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+    <If Condition="Me.MapId == 0" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}/{1}: training at Gelman Stonehand in Stormwind.&quot;, Mining.Level, Mining.MaxLevel);" />
+      <TrainSkillAction NpcEntry="5513" Location="-8434.0, 692.81, 103.36" />
+      <WaitAction Condition="false" Timeout="1500" />
+      <TrainSkillAction NpcEntry="5513" Location="-8434.0, 692.81, 103.36" />
+      <CustomAction Code="Lua.DoString(&quot;CloseTrainer()&quot;);" />
+    </If>
+    <If Condition="Me.MapId == 530" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}/{1}: training at Hurnak Grimmord in Honor Hold.&quot;, Mining.Level, Mining.MaxLevel);" />
+      <FlyToAction Dismount="True" Location="-717.8, 2611.7, 91.1" />
+      <TrainSkillAction NpcEntry="18779" Location="-717.8, 2611.7, 91.1" />
+      <WaitAction Condition="false" Timeout="1500" />
+      <TrainSkillAction NpcEntry="18779" Location="-717.8, 2611.7, 91.1" />
+      <CustomAction Code="Lua.DoString(&quot;CloseTrainer()&quot;);" />
+    </If>
+    <If Condition="Me.MapId == 571" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}/{1}: training at Fendrig Redbeard in Valiance Keep.&quot;, Mining.Level, Mining.MaxLevel);" />
+      <FlyToAction Dismount="True" Location="2356.6, 5258.9, 7.9" />
+      <TrainSkillAction NpcEntry="26999" Location="2356.6, 5258.9, 7.9" />
+      <WaitAction Condition="false" Timeout="1500" />
+      <TrainSkillAction NpcEntry="26999" Location="2356.6, 5258.9, 7.9" />
+      <CustomAction Code="Lua.DoString(&quot;CloseTrainer()&quot;);" />
+    </If>
+    <CustomAction Code="knownSmelts = null; routeLoaded = &quot;&quot;; Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}/{1} after training.&quot;, Mining.Level, Mining.MaxLevel);" />
+    <CallSubRoutine SubRoutineName="SmeltAtForge" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="BuyMiningPick">
+    <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;No mining pick in the bags. Buying one at Brooke Stonebraid in Stormwind.&quot;); Lua.DoString(&quot;GetItemInfo(2901)&quot;);" />
+    <BuyItemAction NpcEntry="5514" Location="-8430.0, 695.14, 96.4" ItemID="2901" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+    <WaitAction Condition="false" Timeout="1500" />
+    <BuyItemAction NpcEntry="5514" Location="-8430.0, 695.14, 96.4" ItemID="2901" BuyItemType="SpecificItem" Count="1" BuyAdditively="False" />
+    <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+    <CustomAction Code="routeLoaded = &quot;&quot;;" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="GoToForge">
+    <If Condition="Me.MapId == 0" IgnoreCanRun="True">
+      <MoveToAction Location="-8421.0, 613.4, 95.2" MoveType="Location" Pathing="Navigator" Entry="0" />
+    </If>
+    <If Condition="Me.MapId == 530" IgnoreCanRun="True">
+      <FlyToAction Dismount="True" Location="-714.1, 2603.5, 89.2" />
+      <MoveToAction Location="-714.1, 2603.5, 89.2" MoveType="Location" Pathing="Navigator" Entry="0" />
+    </If>
+    <If Condition="Me.MapId == 571" IgnoreCanRun="True">
+      <FlyToAction Dismount="True" Location="2334.3, 5269.3, 7.5" />
+      <MoveToAction Location="2334.3, 5269.3, 7.5" MoveType="Location" Pathing="Navigator" Entry="0" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="SmeltAtForge">
+    <If Condition="SmeltTarget() != 0" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}: smelting the ore that still gives skill points at the forge.&quot;, Mining.Level);" />
+      <CallSubRoutine SubRoutineName="GoToForge" />
+      <While Condition="SmeltTarget() != 0 &amp;&amp; NearForge()" IgnoreCanRun="True">
+        <CustomAction Code="CastRecipe(SmeltTarget());" />
+        <WaitAction Condition="Me.IsCasting" Timeout="2000" />
+        <WaitAction Condition="!Me.IsCasting" Timeout="6000" />
+      </While>
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0} after smelting.&quot;, Mining.Level);" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="EmptyBags">
+    <CallSubRoutine SubRoutineName="EnsureCombatBot" />
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Bags almost full ({0} free slots). Going to the forge, then emptying the bags.&quot;, Me.FreeNormalBagSlots);" />
+    <CallSubRoutine SubRoutineName="SmeltAtForge" />
+    <If Condition="Bots.Gatherbuddy.GatherbuddySettings.Instance.MailToAlt &amp;&amp; !string.IsNullOrEmpty(Bots.Gatherbuddy.GatherbuddySettings.Instance.MailRecipient)" IgnoreCanRun="True">
+      <CustomAction Code="CharacterSettings.Instance.MailRecipient = Bots.Gatherbuddy.GatherbuddySettings.Instance.MailRecipient; Log(System.Drawing.Color.YellowGreen, &quot;Mailing ore, bars, stones, gems and elementals to {0}.&quot;, CharacterSettings.Instance.MailRecipient);" />
+      <MailItemAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="MetalStone" Mail="All" UseCategory="True" ItemID="" Amount="0" AutoFindMailBox="True" Location="0, 0, 0" />
+      <MailItemAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Elemental" Mail="All" UseCategory="True" ItemID="" Amount="0" AutoFindMailBox="True" Location="0, 0, 0" />
+      <MailItemAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Mail="All" UseCategory="True" ItemID="" Amount="0" AutoFindMailBox="True" Location="0, 0, 0" />
+    </If>
+    <If Condition="!(Bots.Gatherbuddy.GatherbuddySettings.Instance.MailToAlt &amp;&amp; !string.IsNullOrEmpty(Bots.Gatherbuddy.GatherbuddySettings.Instance.MailRecipient))" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Selling ore, bars, stones, green gems and elementals to the nearest vendor. Enable Mail To Alt in the GatherBuddy settings to keep them.&quot;);" />
+      <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Greys" ItemID="" Count="0" />
+      <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Specific" ItemID="2770,2771,2772,2775,2776,2835,2836,2838,2840,2841,2842,3575,3576,3577,3858,3859,3860,6037,7911,7912,10620,12359,12365,23424,23425,23426,23427,23445,23446,36909,36910,36912,36913,36916,41163,774,818,1206,1210,1529,3864,7909,7910,11382,12361,12364,12799,12800,21929,23077,23079,23107,23112,23117,36917,36920,36923,36926,36929,36932,22573,22574,37701,37702,37703,37705" Count="0" />
+      <CustomAction Code="Lua.DoString(&quot;CloseMerchant()&quot;);" />
+    </If>
+    <If Condition="BagsFull()" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.Red, &quot;Bags are still full after emptying ({0} free slots). Stopping.&quot;, Me.FreeNormalBagSlots);" />
+      <CustomAction Code="TreeRoot.Stop();" />
+      <WaitAction Condition="false" Timeout="5000" />
+    </If>
+    <CustomAction Code="routeLoaded = &quot;&quot;;" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="StormwindToOutland">
+    <If Condition="Me.MapId == 0 &amp;&amp; Me.ZoneId != 4" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Stormwind portal to the Blasted Lands.&quot;);" />
+      <MoveToAction Location="-9007.58, 871.87, 129.69" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <InteractionAction InteractType="GameObject" Entry="195141" InteractDelay="1000" GameObjectType="SpellFocus" SpellFocus="Anvil" />
+      <WaitAction Condition="Me.ZoneId == 4" Timeout="30000" />
+      <WaitAction Condition="false" Timeout="3000" />
+    </If>
+    <If Condition="Me.MapId == 0 &amp;&amp; Me.ZoneId == 4" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going through the Dark Portal.&quot;);" />
+      <MoveToAction Location="-11895.44, -3206.94, -14.64" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <CustomAction Code="CTM(-11922.0, -3209.2, -14.8);" />
+      <WaitAction Condition="Me.MapId == 530" Timeout="30000" />
+      <WaitAction Condition="false" Timeout="3000" />
+    </If>
+    <If Condition="Me.MapId == 530" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;In Outland. Going to Honor Hold.&quot;); routeLoaded = &quot;&quot;;" />
+      <CallSubRoutine SubRoutineName="TrainMining" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="OutlandToStormwind">
+    <If Condition="Me.MapId == 530" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Flying to the Shattrath portal to Stormwind.&quot;);" />
+      <FlyToAction Dismount="True" Location="-1792.78, 5406.54, -12.43" />
+      <MoveToAction Location="-1792.78, 5406.54, -12.43" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <InteractionAction InteractType="GameObject" Entry="183325" InteractDelay="1000" GameObjectType="SpellFocus" SpellFocus="Anvil" />
+      <WaitAction Condition="Me.MapId == 0" Timeout="30000" />
+      <WaitAction Condition="false" Timeout="3000" />
+      <CustomAction Code="routeLoaded = &quot;&quot;;" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="StormwindToNorthrend">
+    <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Going to the Stormwind Harbor pier for the Kraken.&quot;);" />
+    <MoveToAction Location="-8300.08, 1405.158, 4.422395" MoveType="Location" Pathing="Navigator" Entry="0" />
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Mount.Dismount(); Log(System.Drawing.Color.YellowGreen, &quot;Waiting for the Kraken.&quot;);" />
+    <WaitAction Condition="TransportAt(190536, -8288.8, 1424.7, 0)" Timeout="900000" />
+    <While Condition="!Me.IsOnTransport &amp;&amp; TransportAt(190536, -8288.8, 1424.7, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Board(190536);" />
+      <WaitAction Condition="Me.IsOnTransport" Timeout="700" />
+    </While>
+    <If Condition="Me.IsOnTransport" IgnoreCanRun="True">
+      <CustomAction Code="Towards(-8295.016, 1422.455, 9.477573, false);" />
+      <WaitAction Condition="false" Timeout="1500" />
+    </If>
+    <CustomAction Code="Navigator.PlayerMover.MoveStop(); Log(System.Drawing.Color.YellowGreen, &quot;On board: {0}. Sailing to Valiance Keep.&quot;, Me.IsOnTransport);" />
+    <WaitAction Condition="TransportAt(190536, 2218.4, 5119.6, 0)" Timeout="900000" />
+    <While Condition="Me.IsOnTransport &amp;&amp; TransportAt(190536, 2218.4, 5119.6, 0)" IgnoreCanRun="False">
+      <CustomAction Code="Towards(2234.375, 5132.568, 5.343217, true);" />
+      <WaitAction Condition="!Me.IsOnTransport" Timeout="700" />
+    </While>
+    <WaitAction Condition="false" Timeout="2000" />
+    <If Condition="Me.MapId == 571" IgnoreCanRun="True">
+      <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;In Northrend. Training at Fendrig Redbeard.&quot;); routeLoaded = &quot;&quot;;" />
+      <CallSubRoutine SubRoutineName="TrainMining" />
+    </If>
+  </SubRoutine>
+  <Declaration Code="bool announced = false;" />
+  <Declaration Code="string routeLoaded = &quot;&quot;;" />
+  <Declaration Code="uint lastBlacklistLevel = 9999;" />
+  <Declaration Code="DateTime lastHeartbeat = DateTime.MinValue;" />
+  <Declaration Code="DateTime lastProgress = DateTime.Now;" />
+  <Declaration Code="uint lastLevel = 9999;" />
+  <Declaration Code="string knownSmelts = null;" />
+  <Declaration Code="uint MiningCap() { return Me.MapId == 530 ? 375u : Me.MapId == 571 ? 450u : 300u; }" />
+  <Declaration Code="bool NeedTrainer() { return Mining.MaxLevel &gt; 0 &amp;&amp; Mining.MaxLevel &lt; MiningCap() &amp;&amp; Mining.Level &gt;= Mining.MaxLevel - 25; }" />
+  <Declaration Code="bool BagsFull() { return Me.FreeNormalBagSlots &lt;= 2; }" />
+  <Declaration Code="bool CanGather() { return !NeedTrainer() &amp;&amp; !BagsFull() &amp;&amp; HasMiningPick(); }" />
+  <Declaration Code="bool GatherBuddyActive() { return SecondaryBot != null &amp;&amp; SecondaryBot.Name == &quot;GatherBuddy&quot;; }" />
+  <Declaration Code="bool HasMiningPick() { return Me.BagItems.Any(i =&gt; i.IsValid &amp;&amp; (i.Entry == 2901 || i.Entry == 9465 || i.Entry == 40772)); }" />
+  <Declaration Code="bool NearForge() { return ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.IsValid &amp;&amp; o.SubType == WoWGameObjectType.SpellFocus &amp;&amp; o.SpellFocus == WoWSpellFocus.Forge &amp;&amp; o.Distance &lt; 10); }" />
+  <Declaration Code="void ConfigureGatherBuddy() { var s = Bots.Gatherbuddy.GatherbuddySettings.Instance; s.GatherMinerals = true; s.GatherHerbs = false; s.GatherChests = false; s.SkinMobs = false; s.VendorWhenFull = false; s.BottingHours = 0f; }" />
+  <Declaration Code="void UpdateBlacklist() { uint[] entries = { 1732, 1733, 1735, 1734, 2040, 2047, 324, 165658, 175404, 181555, 181556, 181569, 181557, 189978, 189979, 189980, 189981, 191133, 195036 }; uint[] reqs = { 65, 75, 125, 155, 175, 205, 230, 230, 255, 275, 325, 350, 375, 350, 375, 400, 425, 450, 450 }; var set = new HashSet&lt;uint&gt;(); for (int n = 0; n &lt; entries.Length; n++) if (Mining.Level &lt; reqs[n]) set.Add(entries[n]); Bots.Gatherbuddy.GatherbuddySettings.Instance.SetBlacklistedEntries(set); lastBlacklistLevel = Mining.Level; }" />
+  <Declaration Code="void StartRoute(string name) { routeLoaded = name; lastProgress = DateTime.Now; Log(System.Drawing.Color.YellowGreen, &quot;Route {0} loaded with {1} hotspots.&quot;, name, ProfileManager.CurrentProfile != null &amp;&amp; ProfileManager.CurrentProfile.HotspotManager != null ? ProfileManager.CurrentProfile.HotspotManager.Hotspots.Count : 0); }" />
+  <Declaration Code="void Gathering() { if (Mining.Level != lastBlacklistLevel) { UpdateBlacklist(); Log(System.Drawing.Color.Gray, &quot;Mining {0}: blacklist updated.&quot;, Mining.Level); } if (Mining.Level != lastLevel) { lastLevel = Mining.Level; lastProgress = DateTime.Now; } if ((DateTime.Now - lastHeartbeat).TotalSeconds &gt;= 120) { lastHeartbeat = DateTime.Now; Log(System.Drawing.Color.Gray, &quot;Mining {0}/{1} on route {2}. Free bag slots {3}. Ore: copper {4}, tin {5}, iron {6}, mithril {7}, thorium {8}, fel iron {9}, adamantite {10}, cobalt {11}, saronite {12}.&quot;, Mining.Level, Mining.MaxLevel, routeLoaded, Me.FreeNormalBagSlots, InbagCount(2770), InbagCount(2771), InbagCount(2772), InbagCount(3858), InbagCount(10620), InbagCount(23424), InbagCount(23425), InbagCount(36909), InbagCount(36912)); } if ((DateTime.Now - lastProgress).TotalMinutes &gt;= 30) { Log(System.Drawing.Color.Red, &quot;No mining skill point for 30 minutes on route {0}. Stopping.&quot;, routeLoaded); TreeRoot.Stop(); } }" />
+  <Declaration Code="void RefreshSmelts() { Lua.DoString(&quot;CastSpellByName(\&quot;Smelting\&quot;)&quot;); Thread.Sleep(1500); var r = Lua.GetReturnValues(&quot;TradeSkillOnlyShowMakeable(false) SetTradeSkillSubClassFilter(0, 1, 1) SetTradeSkillInvSlotFilter(0, 1, 1) ExpandTradeSkillSubClass(0) local t = {} for i = 1, GetNumTradeSkills() do local link = GetTradeSkillRecipeLink(i) if link then local id = link:match('enchant:(%d+)') if id then table.insert(t, id) end end end CloseTradeSkill() return '|' .. table.concat(t, '|') .. '|'&quot;); knownSmelts = (r != null &amp;&amp; r.Count &gt; 0 &amp;&amp; r[0] != null) ? r[0] : &quot;||&quot;; Log(System.Drawing.Color.Gray, &quot;Known smelting spells: {0}&quot;, knownSmelts); }" />
+  <Declaration Code="bool KnowsSmelt(uint spellId) { if (knownSmelts == null) RefreshSmelts(); return knownSmelts.Contains(&quot;|&quot; + spellId + &quot;|&quot;); }" />
+  <Declaration Code="uint SmeltTarget() { uint[] spells = { 2657, 3304, 2658, 3307, 3308, 10097, 10098, 16153, 29356, 29358, 49252, 49258 }; uint[] ores = { 2770, 2771, 2775, 2772, 2776, 3858, 7911, 10620, 23424, 23425, 36909, 36912 }; uint[] grays = { 70, 75, 130, 160, 185, 230, 290, 290, 325, 340, 375, 400 }; for (int n = 0; n &lt; spells.Length; n++) { if (Mining.Level &lt; grays[n] &amp;&amp; InbagCount(ores[n]) &gt;= 1 &amp;&amp; KnowsSmelt(spells[n])) return spells[n]; } if (Mining.Level &lt; 115 &amp;&amp; InbagCount(2840) &gt;= 1 &amp;&amp; InbagCount(3576) &gt;= 1 &amp;&amp; KnowsSmelt(2659)) return 2659; return 0; }" />
+  <Declaration Code="void CastRecipe(uint spellId) { var sp = WoWSpell.FromId((int)spellId); if (sp == null) { Log(System.Drawing.Color.Red, &quot;Spell {0} not found in the spell database.&quot;, spellId); return; } if (Me.IsMoving) WoWMovement.MoveStop(); sp.Cast(); }" />
+  <Declaration Code="void EndOfPass() { if ((DateTime.Now - lastHeartbeat).TotalSeconds &gt;= 120) { lastHeartbeat = DateTime.Now; Log(System.Drawing.Color.Gray, &quot;End of pass. Mining {0}/{1}, map {2}, zone {3}, route {4}, bot {5}.&quot;, Mining.Level, Mining.MaxLevel, Me.MapId, Me.ZoneId, routeLoaded, SecondaryBot == null ? &quot;none&quot; : SecondaryBot.Name); } if (Mining.Level != lastLevel) { lastLevel = Mining.Level; lastProgress = DateTime.Now; } if ((DateTime.Now - lastProgress).TotalMinutes &gt;= 30) { Log(System.Drawing.Color.Red, &quot;No mining skill point for 30 minutes and no branch matched. Stopping.&quot;); TreeRoot.Stop(); } }" />
+  <Declaration Code="WoWPoint TransportPos(uint entry) { var t = ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;(true, false).FirstOrDefault(o =&gt; o.Entry == entry); if (t == null) return WoWPoint.Empty; var m = t.GetWorldMatrix(); return new WoWPoint(m.M41, m.M42, m.M43); }" />
+  <Declaration Code="bool TransportAt(uint entry, double x, double y, double z) { var p = TransportPos(entry); return p != WoWPoint.Empty &amp;&amp; p.Distance(new WoWPoint(x, y, z)) &lt; 2; }" />
+  <Declaration Code="void Board(uint entry) { var p = TransportPos(entry); if (p == WoWPoint.Empty) return; Navigator.PlayerMover.MoveTowards(p); StyxWoW.SleepForLagDuration(); if (!Me.IsOnTransport) WoWMovement.Move(Styx.WoWInternals.WoWMovement.MovementDirection.JumpAscend, TimeSpan.FromMilliseconds(50)); }" />
+  <Declaration Code="void Towards(double x, double y, double z, bool jumpWhileOnTransport) { Navigator.PlayerMover.MoveTowards(new WoWPoint(x, y, z)); StyxWoW.SleepForLagDuration(); if (jumpWhileOnTransport &amp;&amp; Me.IsOnTransport) WoWMovement.Move(Styx.WoWInternals.WoWMovement.MovementDirection.JumpAscend, TimeSpan.FromMilliseconds(50)); }" />
+</Professionbuddy>
