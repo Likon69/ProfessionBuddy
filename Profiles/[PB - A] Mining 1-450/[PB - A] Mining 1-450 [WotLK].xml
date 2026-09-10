@@ -177,6 +177,7 @@
     <CallSubRoutine SubRoutineName="EnsureCombatBot" />
     <If Condition="Me.MapId == 0" IgnoreCanRun="True">
       <CustomAction Code="Log(System.Drawing.Color.YellowGreen, &quot;Mining {0}/{1}: training at Gelman Stonehand in Stormwind.&quot;, Mining.Level, Mining.MaxLevel);" />
+      <MoveToAction Location="-8434.0, 692.81, 103.36" MoveType="Location" Pathing="Navigator" Entry="0" />
       <TrainSkillAction NpcEntry="5513" Location="-8434.0, 692.81, 103.36" />
       <WaitAction Condition="false" Timeout="1500" />
       <TrainSkillAction NpcEntry="5513" Location="-8434.0, 692.81, 103.36" />
