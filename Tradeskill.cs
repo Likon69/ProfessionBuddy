@@ -157,24 +157,34 @@ namespace HighVoltz
             var abilityList = new List<SkillLineAbilityEntry>();
             int targetSkillId = (int)SkillLine;
 
-            // WotLK 3.3.5a: the 4.3.4 binary-search approach used ClientDb enum values
-            // as image-base-relative offsets (e.g. 0x674DC4), which is wrong here since
-            // our enum values are sequential IDs (e.g. 389). Use WoWDb row iteration instead.
             var table = StyxWoW.Db[ClientDb.SkillLineAbility];
             if (table == null)
+            {
+                Professionbuddy.Log("SkillLineAbility DBC table is NULL (enum={0})", (int)ClientDb.SkillLineAbility);
                 return abilityList;
+            }
 
             uint min = (uint)table.MinIndex;
             uint max = (uint)table.MaxIndex;
+            Professionbuddy.Debug("SkillLineAbility: rows={0} min={1} max={2} target={3}", table.NumRows, min, max, targetSkillId);
+
+            int nullRows = 0;
+            int totalRows = 0;
             for (uint i = min; i <= max; i++)
             {
                 var row = table.GetRow(i);
                 if (row == null)
+                {
+                    nullRows++;
                     continue;
+                }
+                totalRows++;
                 var entry = row.GetStruct<SkillLineAbilityEntry>();
                 if ((int)entry.SkillLine == targetSkillId)
                     abilityList.Add(entry);
             }
+            Professionbuddy.Debug("SkillLineAbility scan: {0} valid rows, {1} null, {2} matched skill {3}",
+                totalRows, nullRows, abilityList.Count, SkillLine);
             return abilityList;
         }
 
@@ -284,18 +294,22 @@ namespace HighVoltz
                 tradeSkill = new TradeSkill(wowSkill);
 
                 List<SkillLineAbilityEntry> entries = tradeSkill.GetSkillLineAbilityEntries();
+                int filtered = 0;
                 foreach (SkillLineAbilityEntry entry in entries)
                 {
-                    // check if the entry is a recipe
                     if (entry.NextSpellId == 0 && entry.GreySkillLevel > 0)
                     {
                         var recipe = new Recipe(tradeSkill, entry);
                         recipe.UpdateHeader();
                         tradeSkill.AddRecipe(recipe);
                     }
-                    //Logging.Write(entry.ToString());
+                    else
+                    {
+                        filtered++;
+                    }
                 }
-                //}
+                Professionbuddy.Log("{0}: {1} entries, {2} filtered, {3} recipes loaded",
+                    skillLine, entries.Count, filtered, tradeSkill.Recipes.Count);
             }
             catch (Exception ex)
             {
@@ -1010,96 +1024,34 @@ namespace HighVoltz
 
     #region SkillLineAbilityEntry
 
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     internal struct SkillLineAbilityEntry
     {
         #region RecipeAquireMethod enum
 
         public enum RecipeAquireMethod
         {
-            /// <summary>
-            /// Recipes that are bought from the trainer
-            /// </summary>
             TrainerBuy,
-
-            /// <summary>
-            /// Recipes that are aquired automatically upon training a skill
-            /// </summary>
             TrainerAuto,
-
-            /// <summary>
-            /// Recipes that are aquired through a quest.
-            /// </summary>
             Quest
         }
 
         #endregion
 
-        /// <summary>
-        /// SkillLineAbilityId
-        /// </summary>
-        public uint Id { get; private set; }
-
-        public SkillLine SkillLine { get; private set; }
-
-        /// <summary>
-        /// The SpellId for recipe
-        /// </summary>
-        public uint SpellId { get; private set; }
-
-        /// <summary>
-        /// Required race bitmask for ChrRaces.dbc
-        /// </summary>
-        public uint ReqRaces { get; private set; }
-
-        /// <summary>
-        /// Required class bitmask for ChrClasses.dbc
-        /// </summary>
-        public uint ReqClasses { get; private set; }
-
-        /// <summary>
-        /// Excluded race bitmask for ChrRaces.dbc
-        /// </summary>
-        public uint ExclRaces { get; private set; }
-
-        /// <summary>
-        /// Excluded class bitmask for ChrClasses.dbc
-        /// </summary>
-        public uint ExclClasses { get; private set; }
-
-        /// <summary>
-        /// The skill level that recipe is shown as orange (optimal) difficulty
-        /// </summary>
-        public int OrangeSkillLevel { get; private set; }
-
-        /// <summary>
-        /// The next Skill rank spellId - 0 for Recipes
-        /// </summary>
-        public uint NextSpellId { get; private set; }
-
-        /// <summary>
-        /// How the recipe is aquired
-        /// </summary>
-        public RecipeAquireMethod AquireMethod { get; private set; }
-
-        /// <summary>
-        /// The skill level that recipe is shown as gray (trivial) difficulty
-        /// </summary>
-        public int GreySkillLevel { get; private set; }
-
-        /// <summary>
-        /// The skill level that recipe is shown as yellow (medium) difficulty
-        /// </summary>
-        public int YellowSkillLevel { get; private set; }
-
-        /// <summary>
-        /// The amount of skill points earned when gaining a skillup while recipe is at optimal difficulty
-        /// </summary>
-        public int SkillPointsEarned { get; private set; }
-
-        /// <summary>
-        /// The order in which the entries are displayed in the tradeskill frame.
-        /// </summary>
-        public int DisplayOrder { get; private set; }
+        public uint Id;
+        public SkillLine SkillLine;
+        public uint SpellId;
+        public uint ReqRaces;
+        public uint ReqClasses;
+        public uint ExclRaces;
+        public uint ExclClasses;
+        public int OrangeSkillLevel;
+        public uint NextSpellId;
+        public RecipeAquireMethod AquireMethod;
+        public int GreySkillLevel;
+        public int YellowSkillLevel;
+        public int SkillPointsEarned;
+        public int DisplayOrder;
 
         public override string ToString()
         {
