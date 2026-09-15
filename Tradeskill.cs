@@ -293,6 +293,8 @@ namespace HighVoltz
                 // sw.Start();
                 tradeSkill = new TradeSkill(wowSkill);
 
+                LoadKnownRecipesForSkill(skillLine);
+
                 List<SkillLineAbilityEntry> entries = tradeSkill.GetSkillLineAbilityEntries();
                 int filtered = 0;
                 foreach (SkillLineAbilityEntry entry in entries)
@@ -319,13 +321,50 @@ namespace HighVoltz
             return tradeSkill;
         }
 
-        /// <summary>
-        /// Returns true if player knows the given spell. Uses IsSpellKnown() (WotLK 3.3.5a, added in 2.4.0).
-        /// </summary>
+        private static HashSet<int> _knownSpellIds;
+
+        internal static void RefreshKnownSpells()
+        {
+            _knownSpellIds = new HashSet<int>();
+        }
+
+        internal static void LoadKnownRecipesForSkill(SkillLine skillLine)
+        {
+            string castName = skillLine.ToString();
+            if (skillLine == SkillLine.FirstAid) castName = "First Aid";
+            string lua =
+                "CastSpellByName('" + castName + "') " +
+                "local ids='' " +
+                "local n=GetNumTradeSkills() or 0 " +
+                "for i=1,n do " +
+                "  local _,t=GetTradeSkillInfo(i) " +
+                "  if t~='header' then " +
+                "    local l=GetTradeSkillRecipeLink(i) " +
+                "    if l then local id=l:match('enchant:(%d+)') if id then ids=ids..id..':' end end " +
+                "  end " +
+                "end " +
+                "CloseTradeSkill() " +
+                "return ids";
+            var ret = Lua.GetReturnValues(lua);
+            int added = 0;
+            if (ret.Count > 0 && !string.IsNullOrEmpty(ret[0]))
+            {
+                foreach (var s in ret[0].Split(new[]{':'}, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (int.TryParse(s, out int id))
+                    {
+                        _knownSpellIds.Add(id);
+                        added++;
+                    }
+                }
+            }
+            Professionbuddy.Log("LoadKnownRecipesForSkill({0}): {1} known recipes", skillLine, added);
+        }
+
         public static bool HasSpell(uint spellId)
         {
-            return Lua.GetReturnVal<bool>(
-                string.Format("return IsSpellKnown({0})", spellId), 0);
+            if (_knownSpellIds == null) RefreshKnownSpells();
+            return _knownSpellIds.Contains((int)spellId);
         }
     }
 
@@ -572,7 +611,7 @@ namespace HighVoltz
 
         private uint? GetCraftedItemID()
         {
-            if (Spell != null)
+            if (Spell != null && Spell.SpellEffect1 != null)
             {
                 return Spell.SpellEffect1.ItemType;
             }
@@ -664,9 +703,17 @@ namespace HighVoltz
             if (t == null) return null;
             var r = t.GetRow(SpellId);
             if (r == null) return null;
-            // WotLK 3.3.5a: read SpellName from monolithic SpellEntry struct
-            var spell = r.GetStruct<SpellEntry>();
-            return spell.SpellName != 0 ? ObjectManager.Wow.Read<string>(spell.SpellName) : null;
+            for (uint li = 136; li < 152; li++)
+            {
+                var ptr = r.GetField<uint>(li);
+                if (ptr != 0)
+                {
+                    string name = ObjectManager.Wow.Read<string>(ptr);
+                    if (!string.IsNullOrEmpty(name))
+                        return name;
+                }
+            }
+            return null;
         }
 
         internal void InitTools()

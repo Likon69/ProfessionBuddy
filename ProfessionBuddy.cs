@@ -617,6 +617,7 @@ namespace HighVoltz
             var newTradeSkills = new List<TradeSkill>();
             try
             {
+                TradeSkill.RefreshKnownSpells();
                 foreach (WoWSkill skill in SupportedTradeSkills)
                 {
                     Log("Adding TradeSkill {0}", skill.Name);

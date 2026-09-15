@@ -70,7 +70,7 @@ namespace HighVoltz
 
             foreach (var kv in Professionbuddy.Instance.TradeSkillList[index].KnownRecipes)
             {
-                if (!CategoryCombo.Items.Contains(kv.Value.Header))
+                if (kv.Value.Header != null && !CategoryCombo.Items.Contains(kv.Value.Header))
                 {
                     CategoryCombo.Items.Add(kv.Value.Header);
                 }
