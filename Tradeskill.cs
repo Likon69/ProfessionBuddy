@@ -623,25 +623,18 @@ namespace HighVoltz
             // instantizing ingredients in here and doing a null check to prevent recursion from Trade.Ingredients() 
             if (_ingredients != null)
                 return;
-            uint recipeID = SpellId;
             _ingredients = new List<Ingredient>();
-            WoWDb.DbTable spelldbTable = StyxWoW.Db[ClientDb.Spell];
-            if (spelldbTable != null && recipeID <= spelldbTable.MaxIndex && recipeID >= spelldbTable.MinIndex)
+            var spell = Spell;
+            if (spell == null)
+                return;
+            // WotLK 3.3.5a: reagents are embedded directly in Spell.dbc (monolithic)
+            var info = spell.InternalInfo;
+            if (info.Reagent == null)
+                return;
+            for (int i = 0; i < info.Reagent.Length; i++)
             {
-                WoWDb.Row spelldbRow = spelldbTable.GetRow(recipeID);
-                if (spelldbRow != null)
-                {
-                    // WotLK 3.3.5a: reagents are embedded directly in Spell.dbc (monolithic)
-                    var spell = spelldbRow.GetStruct<SpellEntry>();
-                    for (int i = 0; i < 8; i++)
-                    {
-                        if (spell.Reagent[i] != 0)
-                        {
-                            _ingredients.Add(new Ingredient((uint)spell.Reagent[i], spell.ReagentCount[i],
-                                                            _parent.Ingredients));
-                        }
-                    }
-                }
+                if (info.Reagent[i] != 0)
+                    _ingredients.Add(new Ingredient((uint)info.Reagent[i], info.ReagentCount[i], _parent.Ingredients));
             }
         }
 
@@ -696,24 +689,10 @@ namespace HighVoltz
             }
         }
 
-        // grab name from dbc
         private string GetName()
         {
-            var t = StyxWoW.Db[ClientDb.Spell];
-            if (t == null) return null;
-            var r = t.GetRow(SpellId);
-            if (r == null) return null;
-            for (uint li = 136; li < 152; li++)
-            {
-                var ptr = r.GetField<uint>(li);
-                if (ptr != 0)
-                {
-                    string name = ObjectManager.Wow.Read<string>(ptr);
-                    if (!string.IsNullOrEmpty(name))
-                        return name;
-                }
-            }
-            return null;
+            string name = SpellDb.GetSpellName((int)SpellId);
+            return string.IsNullOrEmpty(name) ? null : name;
         }
 
         internal void InitTools()
@@ -722,12 +701,10 @@ namespace HighVoltz
             if (_tools != null)
                 return;
             _tools = new List<Tool>();
-            var t = StyxWoW.Db[ClientDb.Spell];
-            if (t == null) return;
-            var spellDbRow = t.GetRow(SpellId);
-            if (spellDbRow == null) return;
+            var wowSpell = Spell;
+            if (wowSpell == null) return;
             // WotLK 3.3.5a: tool data is embedded directly in monolithic SpellEntry
-            var spell = spellDbRow.GetStruct<SpellEntry>();
+            var spell = wowSpell.InternalInfo;
 
             // Anvils, forge, etc (SpellFocusObject)
             if (spell.RequiresSpellFocus != 0)
@@ -738,7 +715,7 @@ namespace HighVoltz
             // AreaGroup requirement
             if (spell.AreaGroupId > 0)
             {
-                t = StyxWoW.Db[ClientDb.AreaGroup];
+                var t = StyxWoW.Db[ClientDb.AreaGroup];
                 var areaGroupDbRow = t?.GetRow((uint)spell.AreaGroupId);
                 var areaTableIndex = areaGroupDbRow?.GetField<uint>(1) ?? 0;
                 if (areaTableIndex != 0)
