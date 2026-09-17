@@ -161,13 +161,14 @@ namespace HighVoltz
 
         private void ActionGridPropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
-            if (ActionGrid.SelectedObject is CastSpellAction && ((CastSpellAction) ActionGrid.SelectedObject).IsRecipe)
+            var csa = ActionTree.SelectedNode != null ? ActionTree.SelectedNode.Tag as CastSpellAction : null;
+            if (csa != null && csa.IsRecipe)
             {
                 _pb.UpdateMaterials();
                 RefreshTradeSkillTabs();
                 RefreshActionTree(typeof (CastSpellAction));
             }
-            else
+            else if (ActionTree.SelectedNode != null)
             {
                 ActionTree.SuspendLayout();
                 UdateTreeNode(ActionTree.SelectedNode, null, null, false);
@@ -784,7 +785,9 @@ namespace HighVoltz
 
         private void UdateTreeNode(TreeNode node, IPBComposite pbComp, Type type, bool recursive)
         {
-            var comp = (IPBComposite) node.Tag;
+            var comp = node != null ? node.Tag as IPBComposite : null;
+            if (comp == null)
+                return;
             if ((pbComp == null && type == null) ||
                 (pbComp != null && pbComp == node.Tag) ||
                 (type != null && type.IsInstanceOfType(node.Tag))
