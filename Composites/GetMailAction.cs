@@ -238,7 +238,7 @@ namespace HighVoltz.Composites
                                 .OrderBy(o => o.Distance).FirstOrDefault();
                     }
                     if (_mailbox != null)
-                        movetoPoint = WoWMathHelper.CalculatePointFrom(Me.Location, _mailbox.Location, 3);
+                        movetoPoint = _mailbox.Location;
                     if (movetoPoint == WoWPoint.Zero)
                     {
                         Professionbuddy.Err(Pb.Strings["Error_UnableToFindMailbox"]);

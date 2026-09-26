@@ -390,7 +390,7 @@ namespace HighVoltz.Composites
             WoWPoint movetoPoint = _loc;
             WoWObject bank = GetLocalBanker();
             if (bank != null)
-                movetoPoint = WoWMathHelper.CalculatePointFrom(Me.Location, bank.Location, 4);
+                movetoPoint = bank.Location;
                 // search the database
             else if (movetoPoint == WoWPoint.Zero)
             {
