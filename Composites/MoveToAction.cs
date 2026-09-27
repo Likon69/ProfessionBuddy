@@ -298,31 +298,31 @@ namespace HighVoltz.Composites
             switch (type)
             {
                 case MoveToType.NearestAH:
-                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction, ObjectManager.Me.MapId,
+                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate, ObjectManager.Me.MapId,
                                                           ObjectManager.Me.Location, UnitNPCFlags.Auctioneer);
                     break;
                 case MoveToType.NearestBanker:
-                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction, ObjectManager.Me.MapId,
+                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate, ObjectManager.Me.MapId,
                                                           ObjectManager.Me.Location, UnitNPCFlags.Banker);
                     break;
                 case MoveToType.NearestFlight:
-                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction, ObjectManager.Me.MapId,
+                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate, ObjectManager.Me.MapId,
                                                           ObjectManager.Me.Location, UnitNPCFlags.Flightmaster);
                     break;
                 case MoveToType.NearestGB:
-                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction, ObjectManager.Me.MapId,
+                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate, ObjectManager.Me.MapId,
                                                           ObjectManager.Me.Location, UnitNPCFlags.GuildBanker);
                     break;
                 case MoveToType.NearestReagentVendor:
-                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction, ObjectManager.Me.MapId,
+                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate, ObjectManager.Me.MapId,
                                                           ObjectManager.Me.Location, UnitNPCFlags.ReagentVendor);
                     break;
                 case MoveToType.NearestRepair:
-                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction, ObjectManager.Me.MapId,
+                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate, ObjectManager.Me.MapId,
                                                           ObjectManager.Me.Location, UnitNPCFlags.Repair);
                     break;
                 case MoveToType.NearestVendor:
-                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction, ObjectManager.Me.MapId,
+                    npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate, ObjectManager.Me.MapId,
                                                           ObjectManager.Me.Location, UnitNPCFlags.Vendor);
                     break;
                 case MoveToType.NpcByID:

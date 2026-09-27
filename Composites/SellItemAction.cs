@@ -181,7 +181,7 @@ namespace HighVoltz.Composites
                     if (_entry == 0)
                     {
                         MoveToAction.GetLocationFromDB(MoveToAction.MoveToType.NearestVendor, 0);
-                        NpcResult npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate.Faction,
+                        NpcResult npcResults = NpcQueries.GetNearestNpc(ObjectManager.Me.FactionTemplate,
                                                                         ObjectManager.Me.MapId,
                                                                         ObjectManager.Me.Location, UnitNPCFlags.Vendor);
                         _entry = (uint) npcResults.Entry;
