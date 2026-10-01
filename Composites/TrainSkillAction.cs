@@ -76,42 +76,70 @@ namespace HighVoltz.Composites
         }
 
         readonly WaitTimer _trainWaitTimer = new WaitTimer(TimeSpan.FromSeconds(2));
+        DateTime _nextStateLog = DateTime.MinValue;
+
+        // The trainer window counts as ours when we target the NPC or the client's "npc" unit (the NPC
+        // whose window is open) has its name. Needing the target alone kept re-clicking an open window.
+        private bool TrainerIsOurs(WoWUnit unit)
+        {
+            if (Me.GotTarget && Me.CurrentTarget.Entry == NpcEntry)
+                return true;
+            return unit != null && Lua.GetReturnVal<string>("return UnitName('npc') or ''", 0) == unit.Name;
+        }
+
         protected override RunStatus Run(object context)
         {
             if (!IsDone)
             {
-                if (TrainerFrame.Instance == null || !TrainerFrame.Instance.IsVisible || !ObjectManager.Me.GotTarget ||
-                    (ObjectManager.Me.GotTarget && ObjectManager.Me.CurrentTarget.Entry != NpcEntry))
+                WoWUnit unit = ObjectManager.GetObjectsOfType<WoWUnit>().Where(o => o.Entry == NpcEntry).
+                    OrderBy(o => o.Distance).FirstOrDefault();
+                bool trainerOpen = TrainerFrame.Instance != null && TrainerFrame.Instance.IsVisible;
+                bool gossipOpen = GossipFrame.Instance != null && GossipFrame.Instance.IsVisible;
+                if (!trainerOpen || !TrainerIsOurs(unit))
                 {
+                    if (DateTime.Now >= _nextStateLog)
+                    {
+                        _nextStateLog = DateTime.Now.AddSeconds(2);
+                        Professionbuddy.Debug("TrainSkill {0}: unit {1} at {2:0.0} yd, target {3}, trainer window {4}, gossip {5}",
+                                              NpcEntry, unit != null ? unit.Name : "not visible",
+                                              unit != null ? unit.Distance : -1f,
+                                              Me.GotTarget ? Me.CurrentTarget.Entry.ToString() : "none", trainerOpen, gossipOpen);
+                    }
                     WoWPoint movetoPoint = _loc;
-                    WoWUnit unit = ObjectManager.GetObjectsOfType<WoWUnit>().Where(o => o.Entry == NpcEntry).
-                        OrderBy(o => o.Distance).FirstOrDefault();
                     if (unit != null)
-                        movetoPoint = WoWMathHelper.CalculatePointFrom(Me.Location, unit.Location, 3);
+                        movetoPoint = unit.Location;
                     else if (movetoPoint == WoWPoint.Zero)
                         movetoPoint = MoveToAction.GetLocationFromDB(MoveToAction.MoveToType.NpcByID, NpcEntry);
                     if (movetoPoint != WoWPoint.Zero && ObjectManager.Me.Location.Distance(movetoPoint) > 4.5)
                     {
                         Util.MoveTo(movetoPoint);
                     }
-                    else if (unit != null)
+                    else if (unit != null && !gossipOpen && !trainerOpen)
                     {
+                        // clicking again while a window is open closes and reopens it before we can use it
                         if (Me.IsMoving)
                             WoWMovement.MoveStop();
                         unit.Target();
                         unit.Interact();
                     }
-                    if (GossipFrame.Instance != null && GossipFrame.Instance.IsVisible &&
-                        GossipFrame.Instance.GossipOptionEntries != null)
+                    if (gossipOpen && GossipFrame.Instance.GossipOptionEntries != null)
                     {
                         foreach (GossipEntry ge in GossipFrame.Instance.GossipOptionEntries)
                         {
                             if (ge.Type == GossipEntry.GossipEntryType.Trainer)
                             {
+                                Professionbuddy.Debug("TrainSkill {0}: picking gossip option {1} '{2}'", NpcEntry, ge.Index, ge.Text);
                                 GossipFrame.Instance.SelectGossipOption(ge.Index);
                                 return RunStatus.Success;
                             }
                         }
+                        Professionbuddy.Debug("TrainSkill {0}: gossip has no trainer option, closing it", NpcEntry);
+                        GossipFrame.Instance.Close();
+                    }
+                    else if (trainerOpen)
+                    {
+                        // someone else's trainer window
+                        TrainerFrame.Instance.Close();
                     }
                     return RunStatus.Success;
                 }
@@ -131,7 +159,11 @@ namespace HighVoltz.Composites
                             Professionbuddy.Log("Done training");
                            return RunStatus.Failure;
                         }
-                        Lua.DoString("BuyTrainerService(0) ");
+                        // services are numbered from 1 on 3.3.5; BuyTrainerService(0) buys nothing
+                        var bought = Lua.GetReturnVal<string>(
+                            "for n=1,GetNumTrainerServices() do local name, rank, kind = GetTrainerServiceInfo(n) if kind == 'available' then BuyTrainerService(n) return name .. ' ' .. (rank or '') end end return ''",
+                            0);
+                        Professionbuddy.Log("Training {0} ({1} available)", bought, numOfAvailableAbilities);
                         _trainWaitTimer.Reset();
                     }
                 }
