@@ -346,7 +346,7 @@ namespace HighVoltz.Composites
                     .OrderBy(o => o.Distance).FirstOrDefault();
             }
             if (auctioneer != null)
-                movetoPoint = WoWMathHelper.CalculatePointFrom(Me.Location, auctioneer.Location, 3);
+                movetoPoint = auctioneer.Location;
             else if (movetoPoint == WoWPoint.Zero)
                 movetoPoint = MoveToAction.GetLocationFromDB(MoveToAction.MoveToType.NearestAH, 0);
             if (movetoPoint == WoWPoint.Zero)

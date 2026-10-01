@@ -140,7 +140,7 @@ namespace HighVoltz.Composites
                                                                        u.SpellFocus == SpellFocus))));
                 if (obj != null)
                 {
-                    WoWPoint moveToLoc = WoWMathHelper.CalculatePointFrom(Me.Location, obj.Location, 3);
+                    WoWPoint moveToLoc = obj.Location;
                     if (moveToLoc.Distance(Me.Location) > 4)
                         Util.MoveTo(moveToLoc);
                     else
